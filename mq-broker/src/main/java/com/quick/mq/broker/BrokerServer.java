@@ -1,7 +1,10 @@
-package com.quick.mq.netty.server;
+package com.quick.mq.broker;
 
-import com.quick.mq.netty.codec.NetworkDecoder;
-import com.quick.mq.netty.server.handler.FastMessageHandler;
+import static java.util.concurrent.TimeUnit.MINUTES;
+
+import com.quick.mq.rpc.netty.netty.codec.NetworkDecoder;
+import com.quick.mq.rpc.netty.netty.codec.NetworkEncoder;
+import com.quick.mq.rpc.netty.netty.handler.NettyMessageHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -9,11 +12,12 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 
 /**
- * 消息队列服务端
+ * 服务端
  */
-public class FastMqServer {
+public class BrokerServer {
 
     public void bind(int port) throws Exception {
         //创建线程组
@@ -32,8 +36,9 @@ public class FastMqServer {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
                                     .addLast(new NetworkDecoder())
-//                                    .addLast("server-idle-handler", new IdleStateHandler(0, 0, 3, MINUTES))
-                                    .addLast(new FastMessageHandler());
+                                    .addLast(new NetworkEncoder())
+                                    .addLast("server-idle-handler", new IdleStateHandler(0, 0, 3, MINUTES))
+                                    .addLast(new NettyMessageHandler());
                         }
                     });
 

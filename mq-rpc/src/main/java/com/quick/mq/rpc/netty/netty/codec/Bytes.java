@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.quick.mq.netty.codec;
+package com.quick.mq.rpc.netty.netty.codec;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -114,7 +114,7 @@ public class Bytes {
      * @param b   byte array.
      * @param off array offset.
      */
-    public static void int2bytes(int v, byte[] b, int off) {
+    public static void int2bytes(long v, byte[] b, int off) {
         b[off + 3] = (byte) v;
         b[off + 2] = (byte) (v >>> 8);
         b[off + 1] = (byte) (v >>> 16);

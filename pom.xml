@@ -11,7 +11,7 @@
   <url>http://maven.apache.org</url>
   <modules>
     <module>mq-client</module>
-    <module>mq-server</module>
+    <module>mq-broker</module>
     <module>mq-rpc</module>
     <module>mq-common</module>
     <module>mq-nameserv</module>
@@ -25,6 +25,9 @@
     <zookeeper.version>3.4.14</zookeeper.version>
     <curator-framework.version>4.2.0</curator-framework.version>
     <hutool.version>5.4.3</hutool.version>
+    <!--logging-->
+    <slf4j.version>1.7.25</slf4j.version>
+    <junit.version>4.13.1</junit.version>
   </properties>
 
   <dependencies>
@@ -71,6 +74,18 @@
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-recipes</artifactId>
       <version>${curator-framework.version}</version>
+    </dependency>
+    <!-- Logback -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.2.3</version>
+    </dependency>
+    <!-- SLF4J -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.32</version>
     </dependency>
   </dependencies>
 </project>

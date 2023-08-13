@@ -2,7 +2,7 @@ package com.quick.mq;
 
 import com.alibaba.fastjson.JSONObject;
 import com.quick.mq.common.exchange.ServiceNode;
-import com.quick.mq.netty.server.FastMqServer;
+import com.quick.mq.broker.BrokerServer;
 import com.quick.mq.common.zookeeper.ZookeeperConfig;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
 
 import java.util.List;
+import org.apache.zookeeper.data.Stat;
 
 /**
  * Hello world!
@@ -23,9 +24,9 @@ public class QuickMqServer
 
     public static void main( String[] args ) throws Exception {
 
-        FastMqServer fastMqServer = new FastMqServer();
+        BrokerServer brokerServer = new BrokerServer();
         initZkRegister(8050);
-        fastMqServer.bind(8050);
+        brokerServer.bind(8050);
 
         MyShutdownHook shutdownHook = new MyShutdownHook();
         Runtime.getRuntime().addShutdownHook(new Thread(shutdownHook));
@@ -37,13 +38,16 @@ public class QuickMqServer
                 .port(8050)
                 .build();
         CuratorFramework zkClient = new ZookeeperConfig().zookeeperClient;
-        zkClient.create()
+        String nodePath = fastMqServerName + "/" + port;
+
+        Stat stat = zkClient.checkExists().forPath(nodePath);
+        if (stat == null){
+            zkClient.create()
                 .creatingParentsIfNeeded()
                 .withMode(CreateMode.PERSISTENT)
                 .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                .forPath(fastMqServerName + "/" + port,JSONObject.toJSONString(serviceNode).getBytes());
-
-
+                .forPath(nodePath,JSONObject.toJSONString(serviceNode).getBytes());
+        }
         List<String> ports = zkClient.getChildren().forPath(fastMqServerName);
         for (String p : ports) {
             byte[] bytes = zkClient.getData().forPath(fastMqServerName + "/" + p);

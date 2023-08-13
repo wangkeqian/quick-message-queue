@@ -7,4 +7,8 @@ public class RemotingException extends RuntimeException{
     public RemotingException(String message) {
         super(message);
     }
+
+    public RemotingException(String s, Throwable e) {
+      super(s ,e);
+    }
 }

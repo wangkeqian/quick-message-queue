@@ -2,15 +2,16 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="mq-rpc" />
         <module name="mq-common" />
-        <module name="mq-server" />
         <module name="mq-client" />
         <module name="mq-nameserv" />
+        <module name="mq-broker" />
       </profile>
     </annotationProcessing>
   </component>
