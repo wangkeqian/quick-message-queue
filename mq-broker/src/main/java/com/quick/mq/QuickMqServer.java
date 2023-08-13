@@ -24,12 +24,12 @@ public class QuickMqServer
 
     public static void main( String[] args ) throws Exception {
 
+        MyShutdownHook shutdownHook = new MyShutdownHook();
+        Runtime.getRuntime().addShutdownHook(new Thread(shutdownHook));
+
         BrokerServer brokerServer = new BrokerServer();
         initZkRegister(8050);
         brokerServer.bind(8050);
-
-        MyShutdownHook shutdownHook = new MyShutdownHook();
-        Runtime.getRuntime().addShutdownHook(new Thread(shutdownHook));
     }
     private static void initZkRegister(int port) throws Exception {
 
@@ -58,6 +58,7 @@ public class QuickMqServer
         @SneakyThrows
         @Override
         public void run() {
+            log.info("清除zk 路由数据");
             CuratorFramework zkClient = new ZookeeperConfig().zookeeperClient;
             zkClient.delete()
                     .forPath(fastMqServerName + "/" + 8050);
