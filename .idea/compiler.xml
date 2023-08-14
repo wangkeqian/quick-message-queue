@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="mq-rpc" />
         <module name="mq-common" />
+        <module name="mq-store" />
         <module name="mq-client" />
         <module name="mq-nameserv" />
         <module name="mq-broker" />

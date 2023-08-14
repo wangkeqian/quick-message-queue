@@ -15,6 +15,7 @@
     <module>mq-rpc</module>
     <module>mq-common</module>
     <module>mq-nameserv</module>
+    <module>mq-store</module>
   </modules>
 
   <properties>

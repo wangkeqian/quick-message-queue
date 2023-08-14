@@ -11,6 +11,8 @@
     <file url="file://$PROJECT_DIR$/mq-nameserv/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mq-rpc/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mq-rpc/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mq-store/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mq-store/src/main/resources" charset="UTF-8" />
     <file url="PROJECT" charset="UTF-8" />
   </component>
 </project>
