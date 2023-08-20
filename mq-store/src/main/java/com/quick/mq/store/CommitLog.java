@@ -4,14 +4,20 @@ import com.quick.mq.common.store.BrokerInnerMessage;
 
 public class CommitLog {
 
+    private final String storePath;
+    private final MappedFileQueue mappedFileQueue;
 
-    public CommitLog() {
-        //加载CommitLog文件
-        this.load();
+    public CommitLog(final DefaultMessageStore defaultMessageStore) {
+        this.storePath = defaultMessageStore.getMessageStoreConfig().getStorePathCommitLog();
+        this.mappedFileQueue = new MappedFileQueue(this.storePath, defaultMessageStore.getMessageStoreConfig().getCommitLogSize());
+
     }
 
-    private void load() {
+    public boolean load() {
 
+        boolean result = this.mappedFileQueue.load();
+
+        return result;
     }
 
     /**
