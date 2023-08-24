@@ -107,39 +107,6 @@ public class BrokerBootstraps
         return null;
     }
 
-    private static void initZkRegister(int port) throws Exception {
-
-        ServiceNode serviceNode = ServiceNode.builder()
-                .host("127.0.0.1")
-                .port(8050)
-                .build();
-        CuratorFramework zkClient = new ZookeeperConfig(namesServConfig.getNameServHostWithPort()).zookeeperClient;
-        String nodePath = fastMqServerName + "/" + port;
-
-        Stat stat = zkClient.checkExists().forPath(nodePath);
-        if (stat == null){
-            zkClient.create()
-                .creatingParentsIfNeeded()
-                .withMode(CreateMode.PERSISTENT)
-                .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                .forPath(nodePath,JSONObject.toJSONString(serviceNode).getBytes());
-        }
-        List<String> ports = zkClient.getChildren().forPath(fastMqServerName);
-        for (String p : ports) {
-            byte[] bytes = zkClient.getData().forPath(fastMqServerName + "/" + p);
-            log.info(new String(bytes));
-        }
-    }
-    static class MyShutdownHook implements Runnable {
-        @SneakyThrows
-        @Override
-        public void run() {
-            log.info("清除zk 路由数据");
-            CuratorFramework zkClient = new ZookeeperConfig(namesServConfig.getNameServHostWithPort()).zookeeperClient;
-            zkClient.delete()
-                    .forPath(fastMqServerName + "/" + 8050);
-        }
-    }
     private static Options buildCommandlineOptions(final Options options) {
         Option opt = new Option("c", "configFile", true, "Broker config properties file");
         opt.setRequired(false);
