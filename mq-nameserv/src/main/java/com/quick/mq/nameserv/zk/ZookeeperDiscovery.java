@@ -2,16 +2,15 @@ package com.quick.mq.nameserv.zk;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Collections2;
 import com.quick.mq.common.exchange.ServiceNode;
 import com.quick.mq.common.zookeeper.ZookeeperConfig;
 import com.quick.mq.nameserv.ServiceDiscovery;
-import io.netty.util.internal.StringUtil;
+import com.quick.mq.nameserv.config.NamesServConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs;
 
-import java.sql.Array;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -19,9 +18,11 @@ public class ZookeeperDiscovery implements ServiceDiscovery {
 
     public static final String fastMqServerName = "/fast_message_queue/server_list";
     private final CuratorFramework zkClient;
+    private final NamesServConfig namesServConfig;
 
-    public ZookeeperDiscovery() {
-        zkClient = new ZookeeperConfig().zookeeperClient;
+    public ZookeeperDiscovery(NamesServConfig namesServConfig) {
+        this.namesServConfig = namesServConfig;
+        zkClient = new ZookeeperConfig(namesServConfig.getNameServHostWithPort()).zookeeperClient;
     }
 
     public ServiceNode findServ() {
@@ -44,6 +45,14 @@ public class ZookeeperDiscovery implements ServiceDiscovery {
             throw new RuntimeException("zk客户端异常");
         }
         return JSONObject.parseObject(new String(info), ServiceNode.class);
+    }
+
+    public void register() {
+
+    }
+
+    public void removeServ() {
+
     }
 
 }

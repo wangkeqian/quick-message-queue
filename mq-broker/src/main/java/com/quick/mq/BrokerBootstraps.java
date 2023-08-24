@@ -7,6 +7,7 @@ import com.quick.mq.common.utils.MixAll;
 import com.quick.mq.common.utils.ServerUtil;
 import com.quick.mq.common.zookeeper.ZookeeperConfig;
 import com.quick.mq.common.config.BrokerConfig;
+import com.quick.mq.nameserv.config.NamesServConfig;
 import com.quick.mq.store.config.MessageStoreConfig;
 import com.quick.mq.config.NettyClientConfig;
 import com.quick.mq.config.NettyServerConfig;
@@ -40,11 +41,15 @@ public class BrokerBootstraps
     public static String configFile = null;
     public static void main( String[] args ) throws Exception {
 
-        createBrokerController(args);
+        LetsGo(createBrokerController(args));
 
     }
 
-    private static void createBrokerController(String[] args) {
+    private static void LetsGo(BrokerController brokerController) {
+        brokerController.start();
+    }
+
+    private static BrokerController createBrokerController(String[] args) {
 
         Options options = ServerUtil.buildCommandlineOptions(new Options());
         commandLine = ServerUtil.parseCmdLine("mqbroker", args, buildCommandlineOptions(options),
@@ -57,6 +62,7 @@ public class BrokerBootstraps
         final MessageStoreConfig messageStoreConfig = new MessageStoreConfig();
         final NettyServerConfig nettyServerConfig = new NettyServerConfig();
         final NettyClientConfig nettyClientConfig = new NettyClientConfig();
+        final NamesServConfig namesServConfig = new NamesServConfig();
 
         try {
             if (commandLine.hasOption('c')) {
@@ -82,8 +88,8 @@ public class BrokerBootstraps
                 brokerConfig,
                 messageStoreConfig,
                 nettyServerConfig,
-                nettyClientConfig
-            );
+                nettyClientConfig,
+                namesServConfig);
 
             boolean init = brokerController.init();
             if (!init){
@@ -92,13 +98,13 @@ public class BrokerBootstraps
                 System.exit(-2);
             }
 
-
+            return brokerController;
 
         }catch (Exception e){
             e.printStackTrace();
             System.exit(-1);
         }
-
+        return null;
     }
 
     private static void initZkRegister(int port) throws Exception {
@@ -107,7 +113,7 @@ public class BrokerBootstraps
                 .host("127.0.0.1")
                 .port(8050)
                 .build();
-        CuratorFramework zkClient = new ZookeeperConfig().zookeeperClient;
+        CuratorFramework zkClient = new ZookeeperConfig(namesServConfig.getNameServHostWithPort()).zookeeperClient;
         String nodePath = fastMqServerName + "/" + port;
 
         Stat stat = zkClient.checkExists().forPath(nodePath);
@@ -129,7 +135,7 @@ public class BrokerBootstraps
         @Override
         public void run() {
             log.info("清除zk 路由数据");
-            CuratorFramework zkClient = new ZookeeperConfig().zookeeperClient;
+            CuratorFramework zkClient = new ZookeeperConfig(namesServConfig.getNameServHostWithPort()).zookeeperClient;
             zkClient.delete()
                     .forPath(fastMqServerName + "/" + 8050);
         }

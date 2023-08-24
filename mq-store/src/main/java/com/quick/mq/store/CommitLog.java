@@ -13,6 +13,10 @@ public class CommitLog {
 
     }
 
+    /**
+     * commitLog的加载委托给mappedFileQueue
+     * @return
+     */
     public boolean load() {
 
         boolean result = this.mappedFileQueue.load();

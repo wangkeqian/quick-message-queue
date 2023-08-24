@@ -1,6 +1,5 @@
 package com.quick.mq.nameserv;
 
-import com.quick.mq.common.exchange.Request;
 import com.quick.mq.common.exchange.ServiceNode;
 import com.quick.mq.common.extension.SPI;
 
@@ -12,4 +11,7 @@ public interface ServiceDiscovery {
      */
     ServiceNode findServ();
 
+    void register();
+
+    void removeServ();
 }

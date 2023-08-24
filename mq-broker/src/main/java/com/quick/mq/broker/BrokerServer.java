@@ -2,6 +2,8 @@ package com.quick.mq.broker;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 
+import com.quick.mq.config.NettyClientConfig;
+import com.quick.mq.config.NettyServerConfig;
 import com.quick.mq.rpc.netty.netty.codec.NetworkDecoder;
 import com.quick.mq.rpc.netty.netty.codec.NetworkEncoder;
 import com.quick.mq.rpc.netty.netty.handler.NettyMessageHandler;
@@ -13,11 +15,32 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 服务端
  */
-public class BrokerServer {
+@Slf4j
+public class BrokerServer implements MqServer{
+
+    private NettyServerConfig nettyServerConfig;
+    private NettyClientConfig nettyClientConfig;
+
+    public BrokerServer(NettyServerConfig nettyServerConfig, NettyClientConfig nettyClientConfig) {
+        this.nettyServerConfig = nettyServerConfig;
+        this.nettyClientConfig = nettyClientConfig;
+    }
+
+    @Override
+    public void start() {
+        int serverPort = nettyServerConfig.getServerPort();
+        try {
+            this.bind(serverPort);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public void bind(int port) throws Exception {
         //创建线程组

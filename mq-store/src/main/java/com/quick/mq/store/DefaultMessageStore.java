@@ -54,7 +54,7 @@ public class DefaultMessageStore implements MessageStore{
     try {
       //判断最后一次程序是否正常停止，异常关闭会存在临时文件
       boolean lastShutdownOk = !this.isExistTmpFile();
-
+      // CommitLog 加载
       result = this.commitLog.load();
 
       result = result && this.loadConsumerQueue();

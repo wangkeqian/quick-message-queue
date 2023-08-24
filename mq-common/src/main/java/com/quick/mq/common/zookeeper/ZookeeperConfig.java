@@ -6,18 +6,15 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
-import java.rmi.RemoteException;
-
 @Slf4j
 public class ZookeeperConfig {
-    private String connectString = "101.33.248.235:2181";
     private int timeout = 4000;
 
     public final CuratorFramework zookeeperClient;
 
-    public ZookeeperConfig(){
+    public ZookeeperConfig(String nameServHostWithPort){
         zookeeperClient = CuratorFrameworkFactory.builder()
-                .connectString(connectString)
+                .connectString(nameServHostWithPort)
                 .sessionTimeoutMs(60 * 1000)
                 .connectionTimeoutMs(15 * 1000)
                 .retryPolicy(new ExponentialBackoffRetry(3000,10))
