@@ -24,6 +24,6 @@ public class MessageStoreConfig {
   /**
    * commitLog 容量 默认 1G
    */
-  private final int commitLogSize = 1024 * 1024 * 1024;
+  private final int commitLogSize = 5 * 1024 * 1024;
 
 }

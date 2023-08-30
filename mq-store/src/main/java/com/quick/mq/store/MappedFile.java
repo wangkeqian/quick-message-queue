@@ -1,9 +1,12 @@
 package com.quick.mq.store;
 
+import com.quick.mq.common.exchange.NettyMessage;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
@@ -63,5 +66,20 @@ public class MappedFile {
 
   public void setFlushedPosition(int pos) {
     this.flushedPosition.set(pos);
+  }
+
+  public void sendMessage(final NettyMessage message) {
+    int currentPos = this.wrotePosition.get();
+    if (currentPos < mappedFileSize){
+
+      ByteBuffer byteBuffer = mappedByteBuffer.slice();
+      byteBuffer.position(currentPos);
+
+
+
+
+
+    }
+
   }
 }

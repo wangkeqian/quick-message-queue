@@ -22,6 +22,14 @@ public class ZookeeperDiscovery implements ServiceDiscovery {
     private final NamesServConfig namesServConfig;
     private final NettyServerConfig nettyServerConfig;
     private final String zkNodePath;
+
+    public ZookeeperDiscovery() {
+        namesServConfig = new NamesServConfig();
+        nettyServerConfig = new NettyServerConfig();
+        zkClient = new ZookeeperConfig("101.33.248.235:2181").zookeeperClient;
+        this.zkNodePath = fastMqServerName + "/" + "9898";
+    }
+
     public ZookeeperDiscovery(NamesServConfig namesServConfig ,NettyServerConfig nettyServerConfig) {
         this.namesServConfig = namesServConfig;
         this.nettyServerConfig = nettyServerConfig;
@@ -52,14 +60,15 @@ public class ZookeeperDiscovery implements ServiceDiscovery {
     }
 
     public void register() {
-        int serverPort = nettyServerConfig.getServerPort();
+
+        ServiceNode serviceNode = new ServiceNode(nettyServerConfig.getServerHost(), nettyServerConfig.getServerPort(), true);
         try {
             Stat stat = zkClient.checkExists().forPath(zkNodePath);
             if (stat == null){
                 zkClient.create()
                         .creatingParentContainersIfNeeded()
                         .withMode(CreateMode.PERSISTENT)
-                        .forPath(zkNodePath,JSONObject.toJSONString(nettyServerConfig).getBytes());
+                        .forPath(zkNodePath,JSONObject.toJSONString(serviceNode).getBytes());
             }
         } catch (Exception e) {
             log.info("zk客户端注册异常" ,e);

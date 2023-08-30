@@ -2,6 +2,7 @@ package com.quick.mq.store;
 
 import cn.hutool.core.lang.Assert;
 import com.quick.mq.common.config.BrokerConfig;
+import com.quick.mq.common.exchange.NettyMessage;
 import com.quick.mq.common.utils.FileUtil;
 import com.quick.mq.store.config.MessageStoreConfig;
 import com.quick.mq.store.utils.StorePathUtils;
@@ -134,6 +135,11 @@ public class DefaultMessageStore implements MessageStore{
 
   public void destroy() {
 
+  }
+
+  @Override
+  public void acceptMessage(NettyMessage message) {
+    this.commitLog.asyncPutMessage(message);
   }
 
   public MessageStoreConfig getMessageStoreConfig() {

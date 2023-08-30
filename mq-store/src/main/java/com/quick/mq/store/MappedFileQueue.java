@@ -1,5 +1,6 @@
 package com.quick.mq.store;
 
+import com.quick.mq.common.utils.MixAll;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -64,5 +65,46 @@ public class MappedFileQueue {
     }
 
     return true;
+  }
+
+  public MappedFile getLastMappedFile() {
+    MappedFile mappedFileLast = null;
+
+    while (!this.mappedFiles.isEmpty()){
+      try{
+        mappedFileLast = this.mappedFiles.get(this.mappedFiles.size() - 1);
+        break;
+      }catch (Exception ex){
+        log.error("获取最后一个MappedFile失败");
+        break;
+      }
+    }
+    return mappedFileLast;
+  }
+
+  /**
+   * 每次创建都顺带多创建一个 优化点
+   * @param startOffset
+   * @return
+   */
+  public MappedFile getLastMappedFile(final int startOffset) {
+    String nextFilePath = this.storePath + File.separator + MixAll.offset2FileName(startOffset);
+    String nextNextFilePath = this.storePath + File.separator + MixAll.offset2FileName(startOffset
+        + this.mappedFileSize);
+    return doCreateMappedFile(nextFilePath, nextNextFilePath);
+  }
+
+  private MappedFile doCreateMappedFile(String nextFilePath, String nextNextFilePath) {
+    MappedFile mappedFile = null;
+    try {
+      mappedFile = new MappedFile(nextFilePath, mappedFileSize);
+    } catch (Exception e) {
+      log.error("创建MappedFile 失败" ,e);
+    }
+    if (mappedFile != null){
+      this.mappedFiles.add(mappedFile);
+    }
+
+    return mappedFile;
   }
 }

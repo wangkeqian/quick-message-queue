@@ -4,9 +4,9 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.quick.mq.common.config.NettyClientConfig;
 import com.quick.mq.common.config.NettyServerConfig;
+import com.quick.mq.controller.BrokerController;
 import com.quick.mq.rpc.netty.netty.codec.NetworkDecoder;
 import com.quick.mq.rpc.netty.netty.codec.NetworkEncoder;
-import com.quick.mq.rpc.netty.netty.handler.NettyMessageHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -23,12 +23,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BrokerServer implements MqServer{
 
-    private NettyServerConfig nettyServerConfig;
-    private NettyClientConfig nettyClientConfig;
-
-    public BrokerServer(NettyServerConfig nettyServerConfig, NettyClientConfig nettyClientConfig) {
+    private final NettyServerConfig nettyServerConfig;
+    private final NettyClientConfig nettyClientConfig;
+    private final BrokerController brokerController;
+    public BrokerServer(NettyServerConfig nettyServerConfig,
+        NettyClientConfig nettyClientConfig,
+        BrokerController brokerController) {
         this.nettyServerConfig = nettyServerConfig;
         this.nettyClientConfig = nettyClientConfig;
+        this.brokerController = brokerController;
     }
 
     @Override
@@ -61,7 +64,7 @@ public class BrokerServer implements MqServer{
                                     .addLast(new NetworkDecoder())
                                     .addLast(new NetworkEncoder())
                                     .addLast("server-idle-handler", new IdleStateHandler(0, 0, 3, MINUTES))
-                                    .addLast(new NettyMessageHandler());
+                                    .addLast(new NettyMessageHandler(brokerController));
                         }
                     });
 

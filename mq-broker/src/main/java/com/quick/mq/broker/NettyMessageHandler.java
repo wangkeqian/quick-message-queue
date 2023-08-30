@@ -1,14 +1,14 @@
-package com.quick.mq.rpc.netty.netty.handler;
+package com.quick.mq.broker;
 
 import com.quick.mq.common.exchange.NettyMessage;
 import com.quick.mq.common.t_enum.CompressType;
 import com.quick.mq.common.t_enum.MessageType;
 import com.quick.mq.common.t_enum.SerializeType;
+import com.quick.mq.controller.BrokerController;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,6 +16,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ChannelHandler.Sharable
 public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
+    private final BrokerController brokerController;
+
+    public NettyMessageHandler(BrokerController brokerController) {
+        this.brokerController = brokerController;
+    }
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object message) throws Exception {
         try {
@@ -33,7 +39,8 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
     }
 
     private NettyMessage handleRequestMsg(NettyMessage message) {
-        log.info("处理 消息");
+        log.info("消息 {}" ,message.toString());
+        boolean result = brokerController.acceptMessage(message);
 
         NettyMessage resp = new NettyMessage("ok", CompressType.SNAPPY.getC(), SerializeType.JSON.getB(),
             MessageType.RESPONSE.getB());

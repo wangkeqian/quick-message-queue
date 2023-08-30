@@ -1,9 +1,12 @@
 package com.quick.mq.store;
 
+import com.quick.mq.common.exchange.NettyMessage;
 import com.quick.mq.common.store.BrokerInnerMessage;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class CommitLog {
 
+    private ReentrantLock lock = new ReentrantLock();
     private final String storePath;
     private final MappedFileQueue mappedFileQueue;
 
@@ -28,10 +31,21 @@ public class CommitLog {
      * 1.
      * @param message
      */
-    public void asyncPutMessage(final BrokerInnerMessage message){
+    public void asyncPutMessage(final NettyMessage message){
+        lock.lock();
+
+        try {
+            MappedFile mappedFile = mappedFileQueue.getLastMappedFile();
+            if (mappedFile == null){
+                mappedFileQueue.getLastMappedFile(0);
+            }
+            assert mappedFile != null;
+            mappedFile.sendMessage(message);
 
 
-
+        }finally {
+            lock.unlock();
+        }
 
     }
 

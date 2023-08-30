@@ -32,6 +32,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -366,6 +367,13 @@ public class MixAll {
             return candidatesHost.get(0);
         }
         return null;
+    }
+    public static String offset2FileName(final long offset) {
+        final NumberFormat nf = NumberFormat.getInstance();
+        nf.setMinimumIntegerDigits(20);
+        nf.setMaximumFractionDigits(0);
+        nf.setGroupingUsed(false);
+        return nf.format(offset);
     }
 
     public static boolean compareAndIncreaseOnly(final AtomicLong target, final long value) {
