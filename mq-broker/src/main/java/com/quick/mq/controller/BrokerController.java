@@ -2,14 +2,14 @@ package com.quick.mq.controller;
 
 import com.quick.mq.broker.BrokerServer;
 import com.quick.mq.common.config.BrokerConfig;
-import com.quick.mq.nameserv.ServiceDiscovery;
+import com.quick.mq.nameserv.config.ServiceDiscovery;
 import com.quick.mq.nameserv.config.NamesServConfig;
-import com.quick.mq.nameserv.zk.ZookeeperDiscovery;
+import com.quick.mq.nameserv.config.zk.ZookeeperDiscovery;
 import com.quick.mq.store.DefaultMessageStore;
 import com.quick.mq.store.MessageStore;
 import com.quick.mq.store.config.MessageStoreConfig;
-import com.quick.mq.config.NettyClientConfig;
-import com.quick.mq.config.NettyServerConfig;
+import com.quick.mq.common.config.NettyClientConfig;
+import com.quick.mq.common.config.NettyServerConfig;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -38,7 +38,7 @@ public class BrokerController {
     this.nettyClientConfig = nettyClientConfig;
     this.namesServConfig = namesServConfig;
     this.brokerServer = new BrokerServer(nettyServerConfig ,nettyClientConfig);
-    this.serviceDiscovery = new ZookeeperDiscovery(namesServConfig);
+    this.serviceDiscovery = new ZookeeperDiscovery(namesServConfig ,nettyServerConfig);
   }
 
 
@@ -105,13 +105,11 @@ public class BrokerController {
     //注册到服务中心
     serviceDiscovery.register();
 
-    brokerServer.start();
-
-
-
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       serviceDiscovery.removeServ();
     }));
+
+    brokerServer.start();
 
   }
 

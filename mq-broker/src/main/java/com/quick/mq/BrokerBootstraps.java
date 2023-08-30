@@ -1,33 +1,24 @@
 package com.quick.mq;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSONObject;
-import com.quick.mq.common.exchange.ServiceNode;
 import com.quick.mq.common.utils.MixAll;
 import com.quick.mq.common.utils.ServerUtil;
-import com.quick.mq.common.zookeeper.ZookeeperConfig;
 import com.quick.mq.common.config.BrokerConfig;
 import com.quick.mq.nameserv.config.NamesServConfig;
 import com.quick.mq.store.config.MessageStoreConfig;
-import com.quick.mq.config.NettyClientConfig;
-import com.quick.mq.config.NettyServerConfig;
+import com.quick.mq.common.config.NettyClientConfig;
+import com.quick.mq.common.config.NettyServerConfig;
 import com.quick.mq.controller.BrokerController;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import org.apache.commons.cli.CommandLine;
 import java.util.Properties;
-import lombok.SneakyThrows;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs;
-
-import java.util.List;
-import org.apache.zookeeper.data.Stat;
 
 /**
  * start all in
@@ -77,6 +68,7 @@ public class BrokerBootstraps
                     MixAll.properties2Object(properties, nettyServerConfig);
                     MixAll.properties2Object(properties, nettyClientConfig);
                     MixAll.properties2Object(properties, messageStoreConfig);
+                    MixAll.properties2Object(properties, namesServConfig);
                     in.close();
                 }
             }else {

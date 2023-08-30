@@ -1,5 +1,6 @@
-package com.quick.mq.nameserv;
+package com.quick.mq.nameserv.config;
 
+import com.quick.mq.common.config.NettyServerConfig;
 import com.quick.mq.common.exchange.ServiceNode;
 import com.quick.mq.common.extension.SPI;
 

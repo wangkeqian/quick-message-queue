@@ -2,8 +2,8 @@ package com.quick.mq.broker;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-import com.quick.mq.config.NettyClientConfig;
-import com.quick.mq.config.NettyServerConfig;
+import com.quick.mq.common.config.NettyClientConfig;
+import com.quick.mq.common.config.NettyServerConfig;
 import com.quick.mq.rpc.netty.netty.codec.NetworkDecoder;
 import com.quick.mq.rpc.netty.netty.codec.NetworkEncoder;
 import com.quick.mq.rpc.netty.netty.handler.NettyMessageHandler;

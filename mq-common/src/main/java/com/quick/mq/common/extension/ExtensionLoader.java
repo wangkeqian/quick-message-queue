@@ -121,7 +121,7 @@ public final class ExtensionLoader<T> {
                 EXTENSION_INSTANCES.putIfAbsent(clazz, clazz.newInstance());
                 instance = (T) EXTENSION_INSTANCES.get(clazz);
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error("SPI实例化{} 失败", name ,e);
             }
         }
         return instance;

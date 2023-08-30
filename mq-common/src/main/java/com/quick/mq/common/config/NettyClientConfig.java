@@ -1,4 +1,4 @@
-package com.quick.mq.config;
+package com.quick.mq.common.config;
 
 import lombok.Data;
 

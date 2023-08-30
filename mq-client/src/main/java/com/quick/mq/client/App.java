@@ -14,7 +14,7 @@ public class App
 {
     public static void main( String[] args ) throws ExecutionException, InterruptedException, TimeoutException {
 
-        for (int i = 0; i < 200; i++) {
+        for (int i = 0; i < 1; i++) {
             new Thread(new Runnable() {
                 @SneakyThrows
                 public void run() {
