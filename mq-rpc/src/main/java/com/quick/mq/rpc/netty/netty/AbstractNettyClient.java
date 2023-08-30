@@ -5,6 +5,7 @@ import com.quick.mq.common.exchange.NettyMessage;
 import com.quick.mq.common.exchange.Response;
 import com.quick.mq.common.exchange.ServiceNode;
 import com.quick.mq.common.extension.ExtensionLoader;
+import com.quick.mq.nameserv.config.ServiceDiscovery;
 import com.quick.mq.rpc.netty.RemotingRpcExchange;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
