@@ -42,7 +42,8 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
         log.info("消息 {}" ,message.toString());
         boolean result = brokerController.acceptMessage(message);
 
-        NettyMessage resp = new NettyMessage("ok", CompressType.SNAPPY.getC(), SerializeType.JSON.getB(),
+        NettyMessage resp = new NettyMessage(message
+                .getTopic(),"ok", CompressType.SNAPPY.getC(), SerializeType.JSON.getB(),
             MessageType.RESPONSE.getB());
         resp.setMsgId(message.getMsgId());
         return resp;

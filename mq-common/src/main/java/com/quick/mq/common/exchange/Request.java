@@ -9,10 +9,12 @@ public abstract class Request {
 
     private long msgId;
 
-    private Object data;
+    private final String topic;
+    private final Object data;
 
-    public Request(Object data) {
+    public Request(String topic ,Object data) {
         this.data = data;
+        this.topic = topic;
         this.msgId = REQUEST_ID.getAndIncrement();
     }
 
@@ -26,5 +28,9 @@ public abstract class Request {
 
     public void setMsgId(long msgId) {
         this.msgId = msgId;
+    }
+
+    public String getTopic() {
+        return topic;
     }
 }

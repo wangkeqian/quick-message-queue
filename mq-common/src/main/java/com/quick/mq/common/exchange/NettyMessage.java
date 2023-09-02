@@ -7,14 +7,14 @@ import com.quick.mq.common.t_enum.VersionEnum;
 
 public class NettyMessage extends Request{
 
-    public NettyMessage(Object data) {
-        super(data);
+    public NettyMessage(String topic ,Object data) {
+        super(topic ,data);
         this.compressType = CompressType.SNAPPY.getC();
         this.serializeType = SerializeType.JSON.getB();
         this.messageType = MessageType.REQUEST.getB();
     }
-    public NettyMessage(Object data, byte compressType, byte serializeType, byte messageType) {
-        super(data);
+    public NettyMessage(String topic ,Object data, byte compressType, byte serializeType, byte messageType) {
+        super(topic ,data);
         this.compressType = compressType;
         this.serializeType = serializeType;
         this.messageType = messageType;
@@ -36,6 +36,34 @@ public class NettyMessage extends Request{
      * 消息类型
      */
     private byte messageType;
+
+    /**
+     * CommitLog物理偏移量
+     * @return
+     */
+    private int clQueueOffset;
+
+    /**
+     * 包装后的消息大小
+     * @return
+     */
+    private int warpSize;
+
+    public int getWarpSize() {
+        return warpSize;
+    }
+
+    public void setWarpSize(int warpSize) {
+        this.warpSize = warpSize;
+    }
+
+    public int getClQueueOffset() {
+        return clQueueOffset;
+    }
+
+    public void setClQueueOffset(int clQueueOffset) {
+        this.clQueueOffset = clQueueOffset;
+    }
 
     public VersionEnum getVersion() {
         return version;

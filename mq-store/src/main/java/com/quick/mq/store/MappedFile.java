@@ -3,13 +3,14 @@ package com.quick.mq.store;
 import com.quick.mq.common.exchange.NettyMessage;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -68,18 +69,74 @@ public class MappedFile {
     this.flushedPosition.set(pos);
   }
 
-  public void sendMessage(final NettyMessage message) {
-    int currentPos = this.wrotePosition.get();
-    if (currentPos < mappedFileSize){
+  public static void main(String[] args) {
+    String str = "你好,wkq";
+    byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+    int length = bytes.length;
+    ByteBuffer wrap = ByteBuffer.allocate(4 + 8 + 4 + length);
+    wrap.limit(wrap.capacity());
+    wrap.position(0);
+    wrap.putInt(length);
+    wrap.putLong(System.currentTimeMillis());
+    wrap.putInt(100);
+    wrap.put(bytes);
 
+    wrap.flip();
+    int lg = wrap.getInt();
+    long aLong = wrap.getLong();
+    int anInt1 = wrap.getInt();
+    byte[] data = new byte[lg];
+    ByteBuffer byteBuffer = wrap.get(data);
+    String string = new String(data);
+    System.out.println(string);
+
+  }
+  public void sendMessage(final NettyMessage message) {
+    String originalData = (String) message.getData();
+    byte[] bytes = originalData.getBytes(StandardCharsets.UTF_8);
+    final int dataLength = bytes.length;
+
+    ByteBuffer wrap = ByteBuffer.allocate(4 + 8 + 4 + dataLength);
+    wrap.position(0);
+    wrap.limit(wrap.capacity());
+    //消息体数据长度
+    wrap.putInt(dataLength);
+    //消息存储时间
+    wrap.putLong(System.currentTimeMillis());
+    //消息在消息队列偏移量 todo
+
+    //消息在CommitLog的偏移量
+    int currentPos = this.wrotePosition.get();
+    wrap.putInt(currentPos);
+    //消息体
+    wrap.put(bytes);
+
+    if (currentPos < mappedFileSize){
       ByteBuffer byteBuffer = mappedByteBuffer.slice();
       byteBuffer.position(currentPos);
-
-
-
-
-
+      byteBuffer.put(wrap.array());
+      this.mappedByteBuffer.force();
+      this.wrotePosition.addAndGet(wrap.capacity());
+      this.committedPosition.addAndGet(1);
     }
+    {
+      message.setClQueueOffset(currentPos);
+      message.setWarpSize(wrap.capacity());
+    }
+  }
 
+  public boolean appendMessage(byte[] data) {
+    int currentPos = this.wrotePosition.get();
+
+    if (currentPos + data.length <= mappedFileSize){
+      this.mappedByteBuffer.position(currentPos);
+      this.mappedByteBuffer.put(data);
+      this.mappedByteBuffer.force();
+
+      this.wrotePosition.addAndGet(data.length);
+      this.committedPosition.addAndGet(1);
+      return true;
+    }
+    return false;
   }
 }

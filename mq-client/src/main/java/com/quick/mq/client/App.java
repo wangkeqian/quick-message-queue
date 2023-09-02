@@ -20,8 +20,9 @@ public class App
                 public void run() {
                     NettyClient client = new NettyClient();
                     JSONObject data = new JSONObject();
-                    data.put("name", "nihao");
-                    NettyMessage message = new NettyMessage(data);
+                    data.put("name", "wangkeqian");
+                    String topic = "test_v1";
+                    NettyMessage message = new NettyMessage(topic ,data);
                     Response send = client.send(message);
                     log.info("响应为 {}", send);
                 }

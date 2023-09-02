@@ -37,11 +37,10 @@ public class CommitLog {
         try {
             MappedFile mappedFile = mappedFileQueue.getLastMappedFile();
             if (mappedFile == null){
-                mappedFileQueue.getLastMappedFile(0);
+                mappedFile = mappedFileQueue.getLastMappedFile(0);
             }
             assert mappedFile != null;
             mappedFile.sendMessage(message);
-
 
         }finally {
             lock.unlock();

@@ -1,13 +1,15 @@
 package com.quick.mq.store;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.ObjectUtil;
 import com.quick.mq.common.config.BrokerConfig;
 import com.quick.mq.common.exchange.NettyMessage;
 import com.quick.mq.common.utils.FileUtil;
 import com.quick.mq.store.config.MessageStoreConfig;
 import com.quick.mq.store.utils.StorePathUtils;
 import java.io.File;
-import java.util.ArrayList;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,7 +30,7 @@ public class DefaultMessageStore implements MessageStore{
     this.messageStoreConfig = messageStoreConfig;
     this.brokerConfig = brokerConfig;
     commitLog = new CommitLog(this);
-
+    this.topicConsumerQueueTable = new ConcurrentHashMap<>();
     //初始化commitLog,consumerQueue文件夹
     FileUtil.createDirOK(getCommitLogPath());
     FileUtil.createDirOK(getConsumerQueuePath());
@@ -139,8 +141,56 @@ public class DefaultMessageStore implements MessageStore{
 
   @Override
   public void acceptMessage(NettyMessage message) {
+
     this.commitLog.asyncPutMessage(message);
+
+    ConsumeQueue consumeQueue = findConsumerQueue(message.getTopic());
+    if (consumeQueue != null){
+      consumeQueue.putMessagePositionWrapper(
+              message.getClQueueOffset(),
+              message.getWarpSize(),
+              0,
+              message.getTopic()
+      );
+    }
+
+
   }
+
+  public static void main(String[] args) {
+    String str = "你好，wkq";
+    byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+    final int dataLength = bytes.length;
+
+    ByteBuffer data = ByteBuffer.wrap(bytes);
+    data.flip();
+    data.putInt(dataLength);
+
+
+
+
+
+  }
+
+  private ConsumeQueue findConsumerQueue(String topic) {
+    ConsumeQueue consumeQueue;
+    HashMap<Integer, ConsumeQueue> map = this.topicConsumerQueueTable.get(topic);
+    if (ObjectUtil.isEmpty(map)){
+      consumeQueue = new ConsumeQueue(
+              0,
+              topic,
+              messageStoreConfig.getCommitLogSize(),
+              messageStoreConfig.getStorePathConsumerQueue(),
+              this
+              );
+      HashMap<Integer, ConsumeQueue> newMap = new HashMap<>();
+      topicConsumerQueueTable.put(topic ,newMap);
+    }else {
+      consumeQueue = map.get(map.keySet().stream().max(Integer::compareTo).orElse(0));
+    }
+    return consumeQueue;
+  }
+
 
   public MessageStoreConfig getMessageStoreConfig() {
     return messageStoreConfig;

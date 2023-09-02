@@ -51,9 +51,9 @@ public class MappedFileQueue {
 
       try {
         MappedFile mappedFile = new MappedFile(file.getPath(), this.mappedFileSize);
-        mappedFile.setCommittedPosition(mappedFileSize);
-        mappedFile.setFlushedPosition(mappedFileSize);
-        mappedFile.setWrotePosition(mappedFileSize);
+        mappedFile.setCommittedPosition(0);
+        mappedFile.setFlushedPosition(0);
+        mappedFile.setWrotePosition(0);
         this.mappedFiles.add(mappedFile);
         log.info("加载 mappedFile 路径{} 成功", file.getPath());
       } catch (IOException e) {
@@ -91,6 +91,12 @@ public class MappedFileQueue {
     String nextFilePath = this.storePath + File.separator + MixAll.offset2FileName(startOffset);
     String nextNextFilePath = this.storePath + File.separator + MixAll.offset2FileName(startOffset
         + this.mappedFileSize);
+    return doCreateMappedFile(nextFilePath, nextNextFilePath);
+  }
+  public MappedFile getLastMappedFile(String fileName, final int startOffset) {
+    String nextFilePath = this.storePath + File.separator + fileName + File.separator + MixAll.offset2FileName(startOffset);
+    String nextNextFilePath = this.storePath + File.separator + fileName + File.separator + MixAll.offset2FileName(startOffset
+            + this.mappedFileSize);
     return doCreateMappedFile(nextFilePath, nextNextFilePath);
   }
 
