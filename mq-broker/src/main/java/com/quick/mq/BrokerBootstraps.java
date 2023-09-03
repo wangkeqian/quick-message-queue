@@ -26,7 +26,6 @@ import org.apache.commons.cli.PosixParser;
 @Slf4j
 public class BrokerBootstraps
 {
-    public static final String fastMqServerName = "/fast_message_queue/server_list";
     public static Properties properties = null;
     public static CommandLine commandLine = null;
     public static String configFile = null;

@@ -12,6 +12,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 映射真实消息文件对象
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author wangkq
  * @date 2023/8/20
  */
+@Slf4j
 public class MappedFile {
   //Linux page cache （页缓存）size 默认 4k
   public static final int OS_PAGE_SIZE = 1024 * 4;
@@ -27,8 +29,11 @@ public class MappedFile {
   private File file;
   protected FileChannel fileChannel;
   private MappedByteBuffer mappedByteBuffer;
+  //当前写指针偏移量
   protected final AtomicInteger wrotePosition = new AtomicInteger(0);
+  //当前提交偏移量
   protected final AtomicInteger committedPosition = new AtomicInteger(0);
+  //当前刷盘偏移量
   private final AtomicInteger flushedPosition = new AtomicInteger(0);
 
   public MappedFile(final String fileName, final int mappedFileSize) throws IOException {
@@ -69,6 +74,10 @@ public class MappedFile {
     this.flushedPosition.set(pos);
   }
 
+  public ByteBuffer getSliceByteBuffer(){
+    return this.mappedByteBuffer.slice();
+  }
+
   public static void main(String[] args) {
     String str = "你好,wkq";
     byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
@@ -107,6 +116,7 @@ public class MappedFile {
 
     //消息在CommitLog的偏移量
     int currentPos = this.wrotePosition.get();
+    log.info("消息{} 当前写位置 {}" ,originalData ,currentPos);
     wrap.putInt(currentPos);
     //消息体
     wrap.put(bytes);
@@ -116,7 +126,8 @@ public class MappedFile {
       byteBuffer.position(currentPos);
       byteBuffer.put(wrap.array());
       this.mappedByteBuffer.force();
-      this.wrotePosition.addAndGet(wrap.capacity());
+      int i = this.wrotePosition.addAndGet(wrap.capacity());
+      log.info("消息{} 下个消息写位置 {}" ,originalData ,i);
       this.committedPosition.addAndGet(1);
     }
     {

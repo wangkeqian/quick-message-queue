@@ -44,6 +44,9 @@ public class MappedFileQueue {
 
 
     for (File file : files) {
+      if (file.getName().endsWith(".DS_Store")){
+        continue;
+      }
       if (file.length() != this.mappedFileSize){
         log.error("加载CommitLog文件大小异常 ，请检查");
         return false;
@@ -94,7 +97,7 @@ public class MappedFileQueue {
     return doCreateMappedFile(nextFilePath, nextNextFilePath);
   }
   public MappedFile getLastMappedFile(String fileName, final int startOffset) {
-    String nextFilePath = this.storePath + File.separator + fileName + File.separator + MixAll.offset2FileName(startOffset);
+    String nextFilePath = this.storePath + File.separator + MixAll.offset2FileName(startOffset);
     String nextNextFilePath = this.storePath + File.separator + fileName + File.separator + MixAll.offset2FileName(startOffset
             + this.mappedFileSize);
     return doCreateMappedFile(nextFilePath, nextNextFilePath);

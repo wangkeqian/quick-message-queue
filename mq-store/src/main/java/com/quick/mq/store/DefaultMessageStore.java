@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 默认消息存储器
@@ -19,12 +20,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author wangkq
  * @date 2023/8/20
  */
+@Slf4j
 public class DefaultMessageStore implements MessageStore{
 
   private final MessageStoreConfig messageStoreConfig;
   private final BrokerConfig brokerConfig;
   private final CommitLog commitLog;
-  private ConcurrentHashMap<String ,HashMap<Integer, ConsumeQueue>> topicConsumerQueueTable;
+  private ConcurrentHashMap<String ,ConsumeQueue> topicConsumerQueueTable;
 
   public DefaultMessageStore(MessageStoreConfig messageStoreConfig, BrokerConfig brokerConfig) {
     this.messageStoreConfig = messageStoreConfig;
@@ -62,13 +64,35 @@ public class DefaultMessageStore implements MessageStore{
 
       result = result && this.loadConsumerQueue();
 
+      if (result){
+        //恢复ConsumerQueue和CommitLog有效信息
+        this.recover();
+      }
+
+
     }catch (Exception ex){
+      log.error("load CommitLog and consumerQueue fail" ,ex);
       result = false;
     }
 
 
 
     return result;
+  }
+
+  private void recover() {
+    this.recoverConsumerQueue();
+    this.commitLog.recover();
+  }
+
+  private void recoverConsumerQueue() {
+    int maxPhysicOffset = 0;
+    this.topicConsumerQueueTable.forEach((k,v) ->{
+        ConsumeQueue queue = v;
+        queue.recover();
+    });
+
+
   }
 
   private boolean loadConsumerQueue() {
@@ -88,7 +112,7 @@ public class DefaultMessageStore implements MessageStore{
             ConsumeQueue consumeQueue = new ConsumeQueue(
                 queueId,
                 topic,
-                300_000,
+                5 * 1024 * 1024,
                 getMessageStoreConfig().getStorePathConsumerQueue(),
                 this
             );
@@ -108,16 +132,7 @@ public class DefaultMessageStore implements MessageStore{
   private void setMappedRelation(String topic, int queueId, ConsumeQueue consumeQueue) {
     if (topicConsumerQueueTable == null){
       topicConsumerQueueTable = new ConcurrentHashMap<>(16);
-      HashMap<Integer, ConsumeQueue> queue = new HashMap<>();
-      queue.put(queueId, consumeQueue);
-      topicConsumerQueueTable.put(topic ,queue);
-    }else {
-      HashMap<Integer, ConsumeQueue> queue = topicConsumerQueueTable.get(topic);
-      if (queue == null){
-        HashMap<Integer, ConsumeQueue> map = new HashMap<>();
-        map.put(queueId, consumeQueue);
-        topicConsumerQueueTable.put(topic ,map);
-      }
+      topicConsumerQueueTable.put(topic ,consumeQueue);
     }
   }
 
@@ -153,29 +168,12 @@ public class DefaultMessageStore implements MessageStore{
               message.getTopic()
       );
     }
-
-
-  }
-
-  public static void main(String[] args) {
-    String str = "你好，wkq";
-    byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-    final int dataLength = bytes.length;
-
-    ByteBuffer data = ByteBuffer.wrap(bytes);
-    data.flip();
-    data.putInt(dataLength);
-
-
-
-
-
   }
 
   private ConsumeQueue findConsumerQueue(String topic) {
-    ConsumeQueue consumeQueue;
-    HashMap<Integer, ConsumeQueue> map = this.topicConsumerQueueTable.get(topic);
-    if (ObjectUtil.isEmpty(map)){
+    ConsumeQueue consumeQueue = null;
+    ConsumeQueue queue = this.topicConsumerQueueTable.get(topic);
+    if (null == queue){
       consumeQueue = new ConsumeQueue(
               0,
               topic,
@@ -183,10 +181,8 @@ public class DefaultMessageStore implements MessageStore{
               messageStoreConfig.getStorePathConsumerQueue(),
               this
               );
-      HashMap<Integer, ConsumeQueue> newMap = new HashMap<>();
-      topicConsumerQueueTable.put(topic ,newMap);
-    }else {
-      consumeQueue = map.get(map.keySet().stream().max(Integer::compareTo).orElse(0));
+
+      topicConsumerQueueTable.put(topic ,consumeQueue);
     }
     return consumeQueue;
   }

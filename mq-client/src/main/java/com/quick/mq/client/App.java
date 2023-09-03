@@ -14,14 +14,22 @@ public class App
 {
     public static void main( String[] args ) throws ExecutionException, InterruptedException, TimeoutException {
 
+        /**
+         * wangkeqian
+         * wangxixi
+         * kongjie
+         * wuzhen
+         * china
+         * usa
+         */
         for (int i = 0; i < 1; i++) {
             new Thread(new Runnable() {
                 @SneakyThrows
                 public void run() {
                     NettyClient client = new NettyClient();
                     JSONObject data = new JSONObject();
-                    data.put("name", "wangkeqian");
-                    String topic = "test_v1";
+                    data.put("name", "yunnan");
+                    String topic = "test_v2";
                     NettyMessage message = new NettyMessage(topic ,data);
                     Response send = client.send(message);
                     log.info("响应为 {}", send);
