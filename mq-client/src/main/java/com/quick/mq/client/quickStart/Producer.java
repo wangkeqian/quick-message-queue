@@ -1,4 +1,4 @@
-package com.quick.mq.client;
+package com.quick.mq.client.quickStart;
 
 import com.alibaba.fastjson.JSONObject;
 import com.quick.mq.common.exchange.NettyMessage;
@@ -10,8 +10,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class App
-{
+public class Producer {
     public static void main( String[] args ) throws ExecutionException, InterruptedException, TimeoutException {
 
         /**
@@ -22,13 +21,13 @@ public class App
          * china
          * usa
          */
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 10; i++) {
             new Thread(new Runnable() {
                 @SneakyThrows
                 public void run() {
                     NettyClient client = new NettyClient();
                     JSONObject data = new JSONObject();
-                    data.put("name", "yunnan");
+                    data.put("name", "北京");
                     String topic = "test_v2";
                     NettyMessage message = new NettyMessage(topic ,data);
                     Response send = client.send(message);
