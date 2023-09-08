@@ -1,6 +1,6 @@
 package com.quick.mq.store;
 
-import com.quick.mq.common.exchange.NettyMessage;
+import com.quick.mq.common.exchange.Message;
 
 public interface MessageStore {
 
@@ -16,5 +16,5 @@ public interface MessageStore {
 
   void destroy();
 
-  void acceptMessage(NettyMessage message);
+  void acceptMessage(Message message);
 }

@@ -1,7 +1,7 @@
 package com.quick.mq.client.quickStart;
 
 import com.alibaba.fastjson.JSONObject;
-import com.quick.mq.common.exchange.NettyMessage;
+import com.quick.mq.common.exchange.Message;
 import com.quick.mq.common.exchange.Response;
 import com.quick.mq.rpc.netty.netty.NettyClient;
 import java.util.concurrent.ExecutionException;
@@ -29,7 +29,7 @@ public class Producer {
                     JSONObject data = new JSONObject();
                     data.put("name", "北京");
                     String topic = "test_v2";
-                    NettyMessage message = new NettyMessage(topic ,data);
+                    Message message = new Message(topic ,data);
                     Response send = client.send(message);
                     log.info("响应为 {}", send);
                 }

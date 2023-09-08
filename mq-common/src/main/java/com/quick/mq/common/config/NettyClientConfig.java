@@ -11,4 +11,13 @@ import lombok.Data;
 @Data
 public class NettyClientConfig {
 
+    private int clientWorkerThreads = 4;
+
+    public int getClientWorkerThreads() {
+        return clientWorkerThreads;
+    }
+
+    public void setClientWorkerThreads(int clientWorkerThreads) {
+        this.clientWorkerThreads = clientWorkerThreads;
+    }
 }

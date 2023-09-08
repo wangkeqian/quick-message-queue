@@ -2,7 +2,9 @@ package com.quick.mq.controller;
 
 import com.quick.mq.broker.BrokerServer;
 import com.quick.mq.common.config.BrokerConfig;
-import com.quick.mq.common.exchange.NettyMessage;
+import com.quick.mq.common.exchange.ConsumerNode;
+import com.quick.mq.common.exchange.Message;
+import com.quick.mq.common.exchange.Response;
 import com.quick.mq.nameserv.config.ServiceDiscovery;
 import com.quick.mq.nameserv.config.NamesServConfig;
 import com.quick.mq.nameserv.config.zk.ZookeeperDiscovery;
@@ -12,6 +14,11 @@ import com.quick.mq.store.config.MessageStoreConfig;
 import com.quick.mq.common.config.NettyClientConfig;
 import com.quick.mq.common.config.NettyServerConfig;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * TODO 请说明此类的作用
@@ -29,6 +36,11 @@ public class BrokerController {
   private MessageStore messageStore;
   private BrokerServer brokerServer;
   private ServiceDiscovery serviceDiscovery;
+
+  private ReentrantLock consumerLock = new ReentrantLock();
+
+  private static final AtomicInteger CONSUMER_CLIENT_ID = new AtomicInteger(0);
+
 
 
   public BrokerController(BrokerConfig brokerConfig, MessageStoreConfig messageStoreConfig,
@@ -119,10 +131,54 @@ public class BrokerController {
 
   }
 
-  public boolean acceptMessage(NettyMessage message) {
+  public boolean acceptMessage(Message message) {
 
     this.messageStore.acceptMessage(message);
 
+    return false;
+  }
+
+  public Response heartbeat(Message message) {
+    Response response = new Response();
+    log.info("服务端 接收到心跳 {} ", message);
+    ConsumerNode data = (ConsumerNode) message.getData();
+    List<ConsumerNode> nodes = serviceDiscovery.findAllConsumerByTopic(data.getGroup(), data.getTopic());
+    if (data.getClientId() == null){
+      log.info("有新消費者接入");
+      registerConsumer(data,nodes);
+
+
+
+
+      int clientId = CONSUMER_CLIENT_ID.addAndGet(1);
+    }else {
+      ConsumerNode n1 = nodes.stream().filter(node -> node.getClientId().equalsIgnoreCase(data.getClientId())).findFirst().orElse(null);
+      if (n1 == null){
+        response.setStatus(Response.BAD_REQUEST);
+        response.setErrorMsg("NOT FOUND CLINET ID = [" + data.getClientId() + "]");
+        return response;
+      }else {
+        if (compareTo(data,n1)){
+
+        }
+      }
+    }
+    return response;
+  }
+
+  private void registerConsumer(ConsumerNode data, List<ConsumerNode> nodes) {
+    try {
+      if (consumerLock.tryLock(10_000L, TimeUnit.MILLISECONDS)){
+
+      }
+    }catch (InterruptedException ie){
+      log.error("消费端写入zk异常",ie);
+      throw new RuntimeException(ie);
+    }
+
+  }
+
+  private boolean compareTo(ConsumerNode data, ConsumerNode n1) {
     return false;
   }
 }

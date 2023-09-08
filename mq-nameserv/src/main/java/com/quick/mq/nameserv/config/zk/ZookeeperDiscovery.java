@@ -3,6 +3,7 @@ package com.quick.mq.nameserv.config.zk;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.quick.mq.common.config.NettyServerConfig;
+import com.quick.mq.common.exchange.ConsumerNode;
 import com.quick.mq.common.exchange.ServiceNode;
 import com.quick.mq.common.zookeeper.ZookeeperConfig;
 import com.quick.mq.nameserv.config.NamesServConfig;
@@ -85,6 +86,10 @@ public class ZookeeperDiscovery implements ServiceDiscovery {
             throw new RuntimeException("zk客户端异常");
         }
 
+    }
+
+    public List<ConsumerNode> findAllConsumerByTopic(String group, String topic) {
+        return null;
     }
 
 }

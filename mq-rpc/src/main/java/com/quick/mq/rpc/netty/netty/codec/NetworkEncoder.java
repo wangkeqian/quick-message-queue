@@ -1,6 +1,6 @@
 package com.quick.mq.rpc.netty.netty.codec;
 
-import com.quick.mq.common.exchange.NettyMessage;
+import com.quick.mq.common.exchange.Message;
 import com.quick.mq.common.t_enum.MessageType;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,11 +16,11 @@ public class NetworkEncoder extends MessageToByteEncoder {
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, Object data, ByteBuf out) throws Exception {
 
-        if (!(data instanceof NettyMessage)){
+        if (!(data instanceof Message)){
             return;
         }
 
-        NettyMessage message = (NettyMessage) data;
+        Message message = (Message) data;
 
         // 1. header
         byte[] header = copyOf(MAGIC_NUM, HEAD_LENGTH);

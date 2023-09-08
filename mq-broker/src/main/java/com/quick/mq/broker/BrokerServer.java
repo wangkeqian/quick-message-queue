@@ -15,7 +15,11 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 服务端
@@ -26,6 +30,7 @@ public class BrokerServer implements MqServer{
     private final NettyServerConfig nettyServerConfig;
     private final NettyClientConfig nettyClientConfig;
     private final BrokerController brokerController;
+    private DefaultEventExecutorGroup defaultEventExecutorGroup;
     public BrokerServer(NettyServerConfig nettyServerConfig,
         NettyClientConfig nettyClientConfig,
         BrokerController brokerController) {
@@ -49,7 +54,16 @@ public class BrokerServer implements MqServer{
         //创建线程组
         NioEventLoopGroup bossGroup = new NioEventLoopGroup();
         NioEventLoopGroup workGroup = new NioEventLoopGroup();
-
+        //帮eventLoop 分担pi任务
+        this.defaultEventExecutorGroup = new DefaultEventExecutorGroup(
+                nettyClientConfig.getClientWorkerThreads(),
+                new ThreadFactory() {
+                    private AtomicInteger threadIndex = new AtomicInteger(0);
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        return new Thread(r, "NettyClientWorkerThread_" + this.threadIndex.incrementAndGet());
+                    }
+                });
         try {
             ServerBootstrap b = new ServerBootstrap();
             b
@@ -61,6 +75,7 @@ public class BrokerServer implements MqServer{
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
+                                    .addLast(defaultEventExecutorGroup)
                                     .addLast(new NetworkDecoder())
                                     .addLast(new NetworkEncoder())
                                     .addLast("server-idle-handler", new IdleStateHandler(0, 0, 3, MINUTES))

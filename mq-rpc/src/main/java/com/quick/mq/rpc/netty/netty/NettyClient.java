@@ -4,7 +4,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.quick.mq.common.exception.RemotingException;
 import com.quick.mq.common.exchange.DefaultNettyFuture;
-import com.quick.mq.common.exchange.NettyMessage;
+import com.quick.mq.common.exchange.Message;
 import com.quick.mq.common.exchange.Response;
 import com.quick.mq.common.exchange.ServiceNode;
 import com.quick.mq.rpc.netty.netty.channel.NettyChannel;
@@ -54,7 +54,7 @@ public class NettyClient extends AbstractNettyClient {
         return EventLoopGroupFactory.eventLoopGroup(1 , "netty_client_worker_thread");
     }
 
-    protected Response doSend(ServiceNode serv, NettyMessage request)
+    protected Response doSend(ServiceNode serv, Message request)
         throws InterruptedException, ExecutionException, TimeoutException {
         InetSocketAddress address = new InetSocketAddress(serv.getHost(), serv.getPort());
         ChannelWrapper channelWrapper = NettyChannel.getOrCreateNewChannel(address, () -> {

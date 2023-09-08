@@ -1,6 +1,6 @@
 package com.quick.mq.store;
 
-import com.quick.mq.common.exchange.NettyMessage;
+import com.quick.mq.common.exchange.Message;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,8 +10,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -100,7 +100,7 @@ public class MappedFile {
     System.out.println(string);
 
   }
-  public void sendMessage(final NettyMessage message) {
+  public void sendMessage(final Message message) {
     String originalData = (String) message.getData();
     byte[] bytes = originalData.getBytes(StandardCharsets.UTF_8);
     final int dataLength = bytes.length;

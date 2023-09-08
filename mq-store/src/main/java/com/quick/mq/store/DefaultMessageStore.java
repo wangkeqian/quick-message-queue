@@ -1,16 +1,12 @@
 package com.quick.mq.store;
 
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.ObjectUtil;
 import com.quick.mq.common.config.BrokerConfig;
-import com.quick.mq.common.exchange.NettyMessage;
+import com.quick.mq.common.exchange.Message;
 import com.quick.mq.common.utils.FileUtil;
 import com.quick.mq.store.config.MessageStoreConfig;
 import com.quick.mq.store.utils.StorePathUtils;
 import java.io.File;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 
@@ -155,7 +151,7 @@ public class DefaultMessageStore implements MessageStore{
   }
 
   @Override
-  public void acceptMessage(NettyMessage message) {
+  public void acceptMessage(Message message) {
 
     this.commitLog.asyncPutMessage(message);
 

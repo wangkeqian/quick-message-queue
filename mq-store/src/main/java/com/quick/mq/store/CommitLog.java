@@ -1,9 +1,10 @@
 package com.quick.mq.store;
 
-import com.quick.mq.common.exchange.NettyMessage;
-import com.quick.mq.common.store.BrokerInnerMessage;
+import com.quick.mq.common.exchange.Message;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.locks.ReentrantLock;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -34,7 +35,7 @@ public class CommitLog {
      * 1.
      * @param message
      */
-    public void asyncPutMessage(final NettyMessage message){
+    public void asyncPutMessage(final Message message){
         lock.lock();
 
         try {

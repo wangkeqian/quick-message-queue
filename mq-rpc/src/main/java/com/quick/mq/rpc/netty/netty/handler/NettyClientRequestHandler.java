@@ -1,7 +1,7 @@
 package com.quick.mq.rpc.netty.netty.handler;
 
+import com.quick.mq.common.exchange.Message;
 import com.quick.mq.common.exchange.DefaultNettyFuture;
-import com.quick.mq.common.exchange.NettyMessage;
 import com.quick.mq.common.exchange.Response;
 import com.quick.mq.common.t_enum.MessageType;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,8 +16,8 @@ public class NettyClientRequestHandler extends SimpleChannelInboundHandler<Objec
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object message) throws Exception {
         try{
             log.info("client receive msg {}" ,message);
-            if (message instanceof NettyMessage){
-                NettyMessage msg = (NettyMessage) message;
+            if (message instanceof Message){
+                Message msg = (Message) message;
                 if (msg.getMessageType() == MessageType.HEARTBEAT.getB()){
                     log.info("this is heartbeat {}" ,msg.getData());
                     return;

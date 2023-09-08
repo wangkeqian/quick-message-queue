@@ -1,9 +1,16 @@
 package com.quick.mq.client.consumer;
 
+import com.alibaba.fastjson.JSONObject;
+import com.quick.mq.client.task.ConsumerHeartBeatService;
+import com.quick.mq.common.exchange.Message;
+import com.quick.mq.common.exchange.Response;
+import com.quick.mq.common.t_enum.MessageType;
 import com.quick.mq.rpc.netty.netty.NettyClient;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 public class DefaultConsumer implements Consumer{
@@ -11,7 +18,9 @@ public class DefaultConsumer implements Consumer{
     private String topic;
     private String nameServ;
     private final RebalanceImpl rebalanceImpl;
+    private ConsumerHeartBeatService heartBeatService;
     private final LinkedBlockingQueue<PullRequest> pullRequestQueue = new LinkedBlockingQueue<PullRequest>();
+
 
     private final NettyClient client;
     public DefaultConsumer() {
@@ -27,6 +36,7 @@ public class DefaultConsumer implements Consumer{
 
     public void subscribe(String topic) {
         this.topic = topic;
+        heartBeatService = new ConsumerHeartBeatService(consumerGroup ,topic);
     }
 
     public void setNameServ(String nameServ) {
@@ -40,7 +50,7 @@ public class DefaultConsumer implements Consumer{
     public void start() throws InterruptedException {
         boolean result = false;
         //通知broker，本consumer启动了
-        
+        heartBeatService.start();
 
         //重平衡机制
 

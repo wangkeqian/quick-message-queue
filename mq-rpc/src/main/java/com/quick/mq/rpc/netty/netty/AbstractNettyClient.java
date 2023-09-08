@@ -1,7 +1,7 @@
 package com.quick.mq.rpc.netty.netty;
 
 import com.quick.mq.common.exception.RemotingException;
-import com.quick.mq.common.exchange.NettyMessage;
+import com.quick.mq.common.exchange.Message;
 import com.quick.mq.common.exchange.Response;
 import com.quick.mq.common.exchange.ServiceNode;
 import com.quick.mq.common.extension.ExtensionLoader;
@@ -28,12 +28,12 @@ public abstract class AbstractNettyClient implements RemotingRpcExchange {
     }
 
 
-    public final Response send(NettyMessage message) throws InterruptedException, ExecutionException, TimeoutException {
+    public final Response send(Message message) throws InterruptedException, ExecutionException, TimeoutException {
         ServiceNode serv = discovery.findServ();
         return doSend(serv, message);
     }
 
-    protected abstract Response doSend(ServiceNode serv, NettyMessage request)
+    protected abstract Response doSend(ServiceNode serv, Message request)
         throws InterruptedException, ExecutionException, TimeoutException;
 
     protected abstract void openConnect();
