@@ -3,6 +3,7 @@ package com.quick.mq.store;
 import cn.hutool.core.lang.Assert;
 import com.quick.mq.common.config.BrokerConfig;
 import com.quick.mq.common.exchange.Message;
+import com.quick.mq.common.exchange.PullMessageRequest;
 import com.quick.mq.common.utils.FileUtil;
 import com.quick.mq.store.config.MessageStoreConfig;
 import com.quick.mq.store.utils.StorePathUtils;
@@ -126,10 +127,7 @@ public class DefaultMessageStore implements MessageStore{
   }
 
   private void setMappedRelation(String topic, int queueId, ConsumeQueue consumeQueue) {
-    if (topicConsumerQueueTable == null){
-      topicConsumerQueueTable = new ConcurrentHashMap<>(16);
-      topicConsumerQueueTable.put(topic ,consumeQueue);
-    }
+    topicConsumerQueueTable.put(topic ,consumeQueue);
   }
 
   private boolean isExistTmpFile() {
@@ -166,6 +164,13 @@ public class DefaultMessageStore implements MessageStore{
     }
   }
 
+  @Override
+  public long queryEnableMessage(PullMessageRequest request) {
+    ConsumeQueue consumerQueue = findConsumerQueue(request.getTopic());
+    long offset = consumerQueue.getEnableConsumedOffset();
+    return offset;
+  }
+
   private ConsumeQueue findConsumerQueue(String topic) {
     ConsumeQueue consumeQueue = null;
     ConsumeQueue queue = this.topicConsumerQueueTable.get(topic);
@@ -179,6 +184,8 @@ public class DefaultMessageStore implements MessageStore{
               );
 
       topicConsumerQueueTable.put(topic ,consumeQueue);
+    }else {
+      consumeQueue = queue;
     }
     return consumeQueue;
   }

@@ -1,6 +1,7 @@
 package com.quick.mq.store;
 
 import com.quick.mq.common.exchange.Message;
+import com.quick.mq.common.exchange.PullMessageRequest;
 
 public interface MessageStore {
 
@@ -17,4 +18,6 @@ public interface MessageStore {
   void destroy();
 
   void acceptMessage(Message message);
+
+  long queryEnableMessage(PullMessageRequest request);
 }

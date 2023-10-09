@@ -59,6 +59,8 @@ public class Response implements Serializable {
 
     private String errorMsg;
 
+    private long msgId;
+
     /**
      * response body
      */

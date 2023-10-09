@@ -1,6 +1,8 @@
 package com.quick.mq.rpc.netty.netty.codec;
 
 import com.quick.mq.common.exchange.Message;
+import com.quick.mq.common.exchange.Response;
+import com.quick.mq.common.t_enum.MessageType;
 import com.quick.mq.common.t_enum.VersionEnum;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -83,9 +85,18 @@ public class NetworkDecoder extends LengthFieldBasedFrameDecoder {
     byte[] dataBytes = new byte[dataLength];
     in.readBytes(dataBytes);
     String data = new java.lang.String(dataBytes ,StandardCharsets.UTF_8);
-    Message message = new Message("test_v2",data, compressType, serializeType, messageType);
-    message.setMsgId(messageId);
 
-    return message;
+    if (messageType == MessageType.RESPONSE.getB()){
+      Response response = new Response();
+      response.setResult(serializeType);
+      response.setResult(data);
+      response.setMsgId(messageId);
+      return response;
+
+    }else {
+      Message message = new Message("test_v2",data, compressType, serializeType, messageType);
+      message.setMsgId(messageId);
+      return message;
+    }
   }
 }

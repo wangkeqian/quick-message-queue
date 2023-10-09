@@ -20,4 +20,6 @@ public interface ServiceDiscovery {
     void removeServ();
 
     List<ConsumerNode> findAllConsumerByTopic(String group, String topic);
+
+    void registerConsumer(ConsumerNode data);
 }

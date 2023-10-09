@@ -27,6 +27,9 @@ public class NettyClientRequestHandler extends SimpleChannelInboundHandler<Objec
                     response.setResult(msg.getData());
                     DefaultNettyFuture.sent(msg.getMsgId() ,response);
                 }
+            }else if (message instanceof Response){
+                Response response = (Response) message;
+                DefaultNettyFuture.sent(response.getMsgId() ,response);
             }
         }finally {
             ReferenceCountUtil.release(message);

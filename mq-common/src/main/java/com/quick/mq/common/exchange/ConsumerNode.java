@@ -6,8 +6,11 @@ package com.quick.mq.common.exchange;
 public class ConsumerNode {
     private final String group;
     private final String topic;
-    private final String clientId;
-
+    private String clientId;
+    public ConsumerNode(String group, String topic) {
+        this.group = group;
+        this.topic = topic;
+    }
 
     public ConsumerNode(String group, String topic, String clientId) {
         this.group = group;
@@ -25,5 +28,9 @@ public class ConsumerNode {
 
     public String getClientId() {
         return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 }

@@ -15,6 +15,7 @@ public class ConsumerHeartBeatService extends ServiceThread {
 
     private final String topic;
     private final String consumerGroup;
+    private  String clientId = null;
 
     public ConsumerHeartBeatService(String consumerGroup ,
                                     String topic) {
@@ -26,15 +27,15 @@ public class ConsumerHeartBeatService extends ServiceThread {
         return ConsumerHeartBeatService.class.getSimpleName();
     }
 
+
     public void run() {
         log.info(this.getServiceName() + " service started");
-
-        while (!this.isStopped()) {
-            log.info("等待20秒 发送心跳");
+        do {
+            log.info("发送心跳");
             //心跳 20s一次
-            waitForRunning(20_000L);
             this.heartbeat();
-        }
+            waitForRunning(20_000L);
+        }while (!this.isStopped());
 
         log.info(this.getServiceName() + " service end");
     }
@@ -43,13 +44,17 @@ public class ConsumerHeartBeatService extends ServiceThread {
         log.info("consumer 发送心跳");
 
         NettyClient client = new NettyClient();
-        ConsumerNode node = new ConsumerNode(consumerGroup, topic, "1001");
-        Message message = new Message(null ,node, MessageType.HEARTBEAT);
+        ConsumerNode node = new ConsumerNode(consumerGroup, topic, this.clientId);
+        Message message = new Message(null ,JSONObject.toJSONString(node), MessageType.HEARTBEAT);
         try {
             Response send = client.send(message);
+            if (send.getStatus() == Response.OK){
+                Object result = send.getResult();
+                ConsumerNode tmp = JSONObject.parseObject((String) result, ConsumerNode.class);
+                this.clientId = this.clientId == null ? tmp.getClientId() : this.clientId;
+            }
         } catch (Exception e) {
             log.error("consumer heartbeat 异常" ,e);
-            throw new RuntimeException(e);
         }
     }
 }

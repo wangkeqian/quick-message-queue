@@ -1,9 +1,12 @@
 package com.quick.mq.controller;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.quick.mq.broker.BrokerServer;
 import com.quick.mq.common.config.BrokerConfig;
 import com.quick.mq.common.exchange.ConsumerNode;
 import com.quick.mq.common.exchange.Message;
+import com.quick.mq.common.exchange.PullMessageRequest;
 import com.quick.mq.common.exchange.Response;
 import com.quick.mq.nameserv.config.ServiceDiscovery;
 import com.quick.mq.nameserv.config.NamesServConfig;
@@ -15,6 +18,7 @@ import com.quick.mq.common.config.NettyClientConfig;
 import com.quick.mq.common.config.NettyServerConfig;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,6 +42,8 @@ public class BrokerController {
   private ServiceDiscovery serviceDiscovery;
 
   private ReentrantLock consumerLock = new ReentrantLock();
+
+  protected final AtomicInteger consumerId = new AtomicInteger(1);
 
   private static final AtomicInteger CONSUMER_CLIENT_ID = new AtomicInteger(0);
 
@@ -141,16 +147,15 @@ public class BrokerController {
   public Response heartbeat(Message message) {
     Response response = new Response();
     log.info("服务端 接收到心跳 {} ", message);
-    ConsumerNode data = (ConsumerNode) message.getData();
+    ConsumerNode data = JSONObject.parseObject((String) message.getData(), ConsumerNode.class);
     List<ConsumerNode> nodes = serviceDiscovery.findAllConsumerByTopic(data.getGroup(), data.getTopic());
+    response.setMsgId(message.getMsgId());
+    boolean notifyConsumerRebalance = false;
     if (data.getClientId() == null){
       log.info("有新消費者接入");
       registerConsumer(data,nodes);
-
-
-
-
-      int clientId = CONSUMER_CLIENT_ID.addAndGet(1);
+      response.setResult(JSONObject.toJSONString(data));
+      notifyConsumerRebalance = true;
     }else {
       ConsumerNode n1 = nodes.stream().filter(node -> node.getClientId().equalsIgnoreCase(data.getClientId())).findFirst().orElse(null);
       if (n1 == null){
@@ -159,26 +164,48 @@ public class BrokerController {
         return response;
       }else {
         if (compareTo(data,n1)){
-
+          notifyConsumerRebalance = true;
         }
       }
     }
+
+    //通知某个consumer进行重平衡
+    if (notifyConsumerRebalance){
+
+    }
+
     return response;
   }
 
   private void registerConsumer(ConsumerNode data, List<ConsumerNode> nodes) {
     try {
       if (consumerLock.tryLock(10_000L, TimeUnit.MILLISECONDS)){
-
+        if (ObjectUtil.isEmpty(nodes)){
+          nodes = new ArrayList<>();
+        }
+        int clientId = CONSUMER_CLIENT_ID.addAndGet(1);
+        data.setClientId(String.valueOf(clientId));
+        nodes.add(data);
+        serviceDiscovery.registerConsumer(data);
       }
     }catch (InterruptedException ie){
       log.error("消费端写入zk异常",ie);
       throw new RuntimeException(ie);
+    }finally {
+      consumerLock.unlock();
     }
 
   }
 
   private boolean compareTo(ConsumerNode data, ConsumerNode n1) {
     return false;
+  }
+
+  public Response prePull(Message message) {
+    PullMessageRequest request = JSONObject.parseObject((String) message.getData(), PullMessageRequest.class);
+    long l = messageStore.queryEnableMessage(request);
+    Response response = new Response();
+    response.setResult(l);
+    return response;
   }
 }

@@ -1,10 +1,16 @@
 package com.quick.mq.store;
 
+import com.quick.mq.common.exchange.PullMessageRequest;
 import com.quick.mq.common.utils.FileUtil;
 import java.io.File;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * TODO 请说明此类的作用
@@ -27,6 +33,11 @@ public class ConsumeQueue {
   private long maxPhysicOffset = 0;
   //最大消息偏移量
   private long maxCqOffset = 0;
+  //最大被消费偏移量
+  private long maxConsumedCqOffset = -1;
+
+  private final Lock lock = new ReentrantLock();
+
   public ConsumeQueue(
       int queueId,
       String topic,
@@ -77,8 +88,10 @@ public class ConsumeQueue {
     this.byteBufferIndex.limit(BYTE_BUFFER_INDEX_MAX_SIZE);
     this.byteBufferIndex.putLong(offset);
     this.byteBufferIndex.putInt(size);
+    //是否被消费
+    this.byteBufferIndex.putInt(0);
     //预留 现在用不到
-    this.byteBufferIndex.putLong(100001);
+    this.byteBufferIndex.putInt(1);
     // 消息在CommitLog的序号 * 20字节 = 该消息在ConsumerQueue的物理偏移量
     long cqOffset = clOffset * BYTE_BUFFER_INDEX_MAX_SIZE;
     //需要比较下当前文件的最新物理位置 =？ cqOffset
@@ -99,8 +112,13 @@ public class ConsumeQueue {
       long offset = buffer.getLong();
       //消息总大小
       int size = buffer.getInt();
+      int hasConsumed = buffer.getInt();
+      //当前被消费节点最大节点
+      if (this.maxConsumedCqOffset == -1 && hasConsumed == 1){
+        this.maxConsumedCqOffset = i;
+      }
       //预留
-      long def = buffer.getLong();
+      long def = buffer.getInt();
       if (offset >0 && size > 0){
         //最后maxPhysicOffset = 最后一条消息的物理偏移量 + 长度
         this.maxPhysicOffset = offset + size;
@@ -110,7 +128,32 @@ public class ConsumeQueue {
         this.maxCqOffset += 1;
       }
     }
+    //没有被消费过
+    if (this.maxConsumedCqOffset == -1){
+      this.maxConsumedCqOffset = 0;
+    }
     mappedFile.setWrotePosition(Math.toIntExact(maxPhysicOffset));
+  }
 
+
+  public long getEnableConsumedOffset(){
+    try{
+      if (lock.tryLock(10, TimeUnit.SECONDS)){
+        if (maxCqOffset > maxConsumedCqOffset){
+          long res = maxConsumedCqOffset;
+          if ( maxCqOffset - maxConsumedCqOffset > 32){
+            maxConsumedCqOffset = maxCqOffset + 32;
+          }else {
+            maxConsumedCqOffset = maxCqOffset;
+          }
+          return res;
+        }
+      }
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    } finally {
+      lock.unlock();
+    }
+    return -1;
   }
 }
