@@ -1,8 +1,12 @@
 package com.quick.mq.store;
 
+import com.quick.mq.common.exchange.CommitLogMessage;
+import com.quick.mq.common.exchange.ConsumerQueueMessage;
 import com.quick.mq.common.exchange.Message;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import lombok.extern.slf4j.Slf4j;
@@ -79,5 +83,29 @@ public class CommitLog {
 
         }
 
+    }
+
+    public List<CommitLogMessage> captureMessage(List<ConsumerQueueMessage> consumerQueueMessages) {
+
+        List<CommitLogMessage> commitLogMessages = new ArrayList<>();
+
+        for (ConsumerQueueMessage message : consumerQueueMessages) {
+            MappedFile mappedFile = mappedFileQueue.getLastMappedFile();
+            if (mappedFile != null){
+                ByteBuffer buffer = mappedFile.getSliceByteBuffer();
+                buffer.position((int) message.getOffset());
+                //消息体数据长度
+                int dataLength = buffer.getInt();
+                //消息存储时间
+                long createTime = buffer.getLong();
+                //消息在CommitLog的偏移量
+                int currentPos = buffer.getInt();
+                byte[] bytesBody = new byte[dataLength];
+                buffer.get(bytesBody, 0 , dataLength);
+                CommitLogMessage commitLogMessage = new CommitLogMessage(dataLength, createTime, currentPos, bytesBody);
+                commitLogMessages.add(commitLogMessage);
+            }
+        }
+        return commitLogMessages;
     }
 }

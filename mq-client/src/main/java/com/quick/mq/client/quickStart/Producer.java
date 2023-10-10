@@ -21,13 +21,13 @@ public class Producer {
          * china
          * usa
          */
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1; i++) {
             new Thread(new Runnable() {
                 @SneakyThrows
                 public void run() {
                     NettyClient client = new NettyClient();
                     JSONObject data = new JSONObject();
-                    data.put("name", "北京");
+                    data.put("name", "昆明");
                     String topic = "test_v2";
                     Message message = new Message(topic ,data);
                     Response send = client.send(message);

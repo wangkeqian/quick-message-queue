@@ -1,20 +1,20 @@
 package com.quick.mq.store;
 
-import com.quick.mq.common.exchange.PullMessageRequest;
+import com.quick.mq.common.exchange.ConsumerQueueMessage;
 import com.quick.mq.common.utils.CountDownLatch2;
 import com.quick.mq.common.utils.FileUtil;
 import java.io.File;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * TODO 请说明此类的作用
@@ -148,9 +148,9 @@ public class ConsumeQueue {
       }
       //预留
       long def = buffer.getInt();
-      if (offset >0 && size > 0){
+      if (offset >=0 && size > 0){
         //最后maxPhysicOffset = 最后一条消息的物理偏移量 + 长度
-        this.maxPhysicOffset = offset + size;
+        this.maxPhysicOffset += BYTE_BUFFER_INDEX_MAX_SIZE;
       }
       if (size > 0){
         //消息最大偏移量
@@ -165,6 +165,29 @@ public class ConsumeQueue {
     log.info("消息总数： {} ，等待消费偏移量位置 ：{}" ,maxCqOffset ,maxConsumedCqOffset);
   }
 
+  public List<ConsumerQueueMessage> captureMessage(Integer cqStartOffset, Integer cqEndOffset){
+    MappedFile mappedFile = mappedFileQueue.getLastMappedFile();
+    if (mappedFile == null){
+      return null;
+    }
+    cqStartOffset = 0;
+    cqEndOffset = 7;
+    ByteBuffer buffer = mappedFile.getSliceByteBuffer();
+    buffer.position(cqStartOffset * BYTE_BUFFER_INDEX_MAX_SIZE);
+    List<ConsumerQueueMessage> messages = new ArrayList<>();
+    for (int i = cqStartOffset; i <= cqEndOffset; i++){
+      //消息在commitLog的物理偏移量
+      long offset = buffer.getLong();
+      //消息总大小
+      int size = buffer.getInt();
+      int hasConsumed = buffer.getInt();
+      //预留
+      long def = buffer.getInt();
+      ConsumerQueueMessage message = new ConsumerQueueMessage(offset, size, hasConsumed, def);
+      messages.add(message);
+    }
+    return messages;
+  }
 
   public Map getEnableConsumedOffset(){
     try{

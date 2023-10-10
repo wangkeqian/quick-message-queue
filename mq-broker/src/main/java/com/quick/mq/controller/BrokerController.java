@@ -4,10 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.quick.mq.broker.BrokerServer;
 import com.quick.mq.common.config.BrokerConfig;
-import com.quick.mq.common.exchange.ConsumerNode;
-import com.quick.mq.common.exchange.Message;
-import com.quick.mq.common.exchange.PullMessageRequest;
-import com.quick.mq.common.exchange.Response;
+import com.quick.mq.common.exchange.*;
 import com.quick.mq.nameserv.config.ServiceDiscovery;
 import com.quick.mq.nameserv.config.NamesServConfig;
 import com.quick.mq.nameserv.config.zk.ZookeeperDiscovery;
@@ -207,6 +204,15 @@ public class BrokerController {
     Map<String, Long> l = messageStore.queryEnableMessage(request);
     Response response = new Response();
     response.setResult(JSONObject.toJSONString(l));
+    return response;
+  }
+
+  public Response Pull(Message message) {
+    PullRequest pullRequest = JSONObject.parseObject((String) message.getData(), PullRequest.class);
+    List<CommitLogMessage> messageList = messageStore.getMessage(pullRequest);
+    Response response = new Response();
+    String jsonString = JSONObject.toJSONString(messageList);
+    response.setResult(jsonString);
     return response;
   }
 }

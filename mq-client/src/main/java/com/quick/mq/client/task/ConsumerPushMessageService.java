@@ -3,8 +3,7 @@ package com.quick.mq.client.task;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.quick.mq.client.consumer.DefaultConsumer;
-import com.quick.mq.client.consumer.PullRequest;
-import com.quick.mq.common.exchange.ConsumerNode;
+import com.quick.mq.common.exchange.PullRequest;
 import com.quick.mq.common.exchange.Message;
 import com.quick.mq.common.exchange.PullMessageRequest;
 import com.quick.mq.common.exchange.Response;
@@ -44,6 +43,8 @@ public class ConsumerPushMessageService extends ServiceThread {
                             Integer endOffset = (Integer) result.get("endOffset");
                             pullRequest.setCqStartOffset(startOffset);
                             pullRequest.setCqEndOffset(endOffset);
+                            pullRequest.setQueueId(queueId);
+                            pullRequest.setTopic(topic);
                             defaultConsumer.addPullRequestQueue(pullRequest);
                         }
                     }

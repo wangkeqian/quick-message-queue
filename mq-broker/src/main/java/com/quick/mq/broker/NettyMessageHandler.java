@@ -72,6 +72,9 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
             case 0x04: //消费端预拉请求
                 response = brokerController.prePull(message);
                 break;
+            case 0x05:
+                response = brokerController.Pull(message);
+                break;
             default:
                 throw new IllegalArgumentException("未知消息类型");
         }
