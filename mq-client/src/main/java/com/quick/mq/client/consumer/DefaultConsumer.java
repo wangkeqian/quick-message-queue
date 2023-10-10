@@ -1,16 +1,10 @@
 package com.quick.mq.client.consumer;
 
-import com.alibaba.fastjson.JSONObject;
 import com.quick.mq.client.task.ConsumerHeartBeatService;
 import com.quick.mq.client.task.ConsumerPushMessageService;
-import com.quick.mq.common.exchange.Message;
-import com.quick.mq.common.exchange.Response;
-import com.quick.mq.common.t_enum.MessageType;
 import com.quick.mq.rpc.netty.netty.NettyClient;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
 
 @Slf4j
@@ -23,6 +17,8 @@ public class DefaultConsumer implements Consumer{
     private ConsumerHeartBeatService heartBeatService;
     private final ConsumerPushMessageService pushMessageService;
     private final LinkedBlockingQueue<PullRequest> pullRequestQueue = new LinkedBlockingQueue<PullRequest>();
+
+    private long consumedOffset;
 
     private final NettyClient client;
     public DefaultConsumer() {
@@ -54,7 +50,7 @@ public class DefaultConsumer implements Consumer{
         boolean result = false;
         //通知broker，本consumer启动了
         heartBeatService.start();
-        pushMessageService.start(topic, 1);
+        pushMessageService.start(topic, 1 ,this);
 
         while (true){
             PullRequest take = pullRequestQueue.take();
@@ -62,8 +58,12 @@ public class DefaultConsumer implements Consumer{
         }
     }
 
+    public void addPullRequestQueue(PullRequest pullRequest){
+        this.pullRequestQueue.add(pullRequest);
+    }
+
     private void pullMessage(PullRequest take) {
-        log.info("终于拉到了 {}" ,take);
+        log.info("终于拉到了 起始偏移量 ：{}，结束偏移量 ：{}" ,take.getCqStartOffset() ,take.getCqEndOffset());
     }
 
     public void shutdown() {

@@ -1,6 +1,9 @@
 package com.quick.mq.client.task;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.quick.mq.client.consumer.DefaultConsumer;
+import com.quick.mq.client.consumer.PullRequest;
 import com.quick.mq.common.exchange.ConsumerNode;
 import com.quick.mq.common.exchange.Message;
 import com.quick.mq.common.exchange.PullMessageRequest;
@@ -10,8 +13,12 @@ import com.quick.mq.common.utils.ServiceThread;
 import com.quick.mq.rpc.netty.netty.NettyClient;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+
 @Slf4j
 public class ConsumerPushMessageService extends ServiceThread {
+
+    private DefaultConsumer defaultConsumer;
     private String topic;
     private int queueId;
 
@@ -24,14 +31,22 @@ public class ConsumerPushMessageService extends ServiceThread {
         NettyClient client = new NettyClient();
         log.info(this.getServiceName() + " service started");
         do {
-            log.info("拉取开始");
             PullMessageRequest request = new PullMessageRequest(topic, queueId);
             Message message = new Message(topic , JSONObject.toJSONString(request), MessageType.CONSUMER_PRE_PUll_REQUEST);
             try {
                 Response resp = client.send(message);
                 if (resp.getStatus() == Response.OK){
-                    String result = (String) resp.getResult();
-                    log.info("本次从第 {} 开始 拉取",result);
+                    if (ObjectUtil.isNotEmpty(resp.getResult()) && !resp.getResult().equals("null")){
+                        Map result = JSONObject.parseObject((String) resp.getResult(),Map.class);
+                        if (ObjectUtil.isNotEmpty(result)){
+                            PullRequest pullRequest = new PullRequest();
+                            Integer startOffset = (Integer) result.get("startOffset");
+                            Integer endOffset = (Integer) result.get("endOffset");
+                            pullRequest.setCqStartOffset(startOffset);
+                            pullRequest.setCqEndOffset(endOffset);
+                            defaultConsumer.addPullRequestQueue(pullRequest);
+                        }
+                    }
                 }
             } catch (Exception e) {
                 log.error("consumer heartbeat 异常" ,e);
@@ -41,14 +56,11 @@ public class ConsumerPushMessageService extends ServiceThread {
         log.info(this.getServiceName() + " service end");
     }
 
-    private void pushMessage(int queueId, String topic, NettyClient client) {
 
-
-    }
-
-    public void start(String topic ,int queueId) {
+    public void start(String topic ,int queueId ,DefaultConsumer defaultConsumer) {
         this.topic = topic;
         this.queueId = queueId;
+        this.defaultConsumer = defaultConsumer;
         super.start();
     }
 }

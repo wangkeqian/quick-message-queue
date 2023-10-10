@@ -129,7 +129,6 @@ public abstract class ServiceThread implements Runnable {
 
     protected void waitForRunning(long interval) {
         if (hasNotified.compareAndSet(true, false)) {
-            this.onWaitEnd();
             return;
         }
 
@@ -142,7 +141,6 @@ public abstract class ServiceThread implements Runnable {
             log.error("Interrupted", e);
         } finally {
             hasNotified.set(false);
-            this.onWaitEnd();
         }
     }
 

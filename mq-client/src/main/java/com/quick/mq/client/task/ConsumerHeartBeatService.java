@@ -31,7 +31,6 @@ public class ConsumerHeartBeatService extends ServiceThread {
     public void run() {
         log.info(this.getServiceName() + " service started");
         do {
-            log.info("发送心跳");
             //心跳 20s一次
             this.heartbeat();
             waitForRunning(20_000L);
@@ -41,7 +40,6 @@ public class ConsumerHeartBeatService extends ServiceThread {
     }
 
     private void heartbeat() {
-        log.info("consumer 发送心跳");
 
         NettyClient client = new NettyClient();
         ConsumerNode node = new ConsumerNode(consumerGroup, topic, this.clientId);

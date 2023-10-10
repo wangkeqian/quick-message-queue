@@ -112,7 +112,7 @@ public class NettyChannel {
           throw new RemotingException("链接不活跃");
         }
         boolean open = channel.isOpen();
-        log.info("channel 状态 active : {} ,open : {}" ,active ,open);
+//        log.info("channel 状态 active : {} ,open : {}" ,active ,open);
         ChannelFuture channelFuture = channel.writeAndFlush(data);
         success = channelFuture.await(timeout, TimeUnit.MILLISECONDS);
         Throwable cause = channelFuture.cause();

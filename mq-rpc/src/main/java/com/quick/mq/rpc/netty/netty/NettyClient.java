@@ -64,7 +64,7 @@ public class NettyClient extends AbstractNettyClient {
         DefaultNettyFuture nettyFuture = DefaultNettyFuture.newFuture(msgId);
         channelWrapper.send(request);
 
-        return (Response) nettyFuture.get(10_000, TimeUnit.MILLISECONDS);
+        return (Response) nettyFuture.get(30_000, TimeUnit.MILLISECONDS);
     }
 
     private ChannelFuture doConnect(InetSocketAddress address) {

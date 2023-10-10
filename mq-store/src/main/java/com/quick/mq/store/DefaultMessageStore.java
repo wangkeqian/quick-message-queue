@@ -8,6 +8,7 @@ import com.quick.mq.common.utils.FileUtil;
 import com.quick.mq.store.config.MessageStoreConfig;
 import com.quick.mq.store.utils.StorePathUtils;
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 
@@ -165,10 +166,9 @@ public class DefaultMessageStore implements MessageStore{
   }
 
   @Override
-  public long queryEnableMessage(PullMessageRequest request) {
+  public Map<String, Long> queryEnableMessage(PullMessageRequest request) {
     ConsumeQueue consumerQueue = findConsumerQueue(request.getTopic());
-    long offset = consumerQueue.getEnableConsumedOffset();
-    return offset;
+    return consumerQueue.getEnableConsumedOffset();
   }
 
   private ConsumeQueue findConsumerQueue(String topic) {

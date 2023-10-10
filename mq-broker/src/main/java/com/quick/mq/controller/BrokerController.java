@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -203,9 +204,9 @@ public class BrokerController {
 
   public Response prePull(Message message) {
     PullMessageRequest request = JSONObject.parseObject((String) message.getData(), PullMessageRequest.class);
-    long l = messageStore.queryEnableMessage(request);
+    Map<String, Long> l = messageStore.queryEnableMessage(request);
     Response response = new Response();
-    response.setResult(l);
+    response.setResult(JSONObject.toJSONString(l));
     return response;
   }
 }

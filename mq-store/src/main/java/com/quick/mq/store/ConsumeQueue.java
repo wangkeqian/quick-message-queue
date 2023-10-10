@@ -1,12 +1,16 @@
 package com.quick.mq.store;
 
 import com.quick.mq.common.exchange.PullMessageRequest;
+import com.quick.mq.common.utils.CountDownLatch2;
 import com.quick.mq.common.utils.FileUtil;
 import java.io.File;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -28,6 +32,8 @@ public class ConsumeQueue {
   private final MappedFileQueue mappedFileQueue;
   private final ByteBuffer byteBufferIndex;
   private final int BYTE_BUFFER_INDEX_MAX_SIZE = 20;
+  protected final CountDownLatch2 waitPoint = new CountDownLatch2(1);
+  protected volatile AtomicBoolean hasNotified = new AtomicBoolean(false);
   private final String storePath;
   //最大消息物理偏移量
   private long maxPhysicOffset = 0;
@@ -72,7 +78,27 @@ public class ConsumeQueue {
     log.info("consumerQueue文件 加载 {}" ,result ? "成功" : "失败");
     return result;
   }
+  protected void waitForRunning(long interval) {
+    if (hasNotified.compareAndSet(true, false)) {
+      return;
+    }
 
+    //entry to wait
+    waitPoint.reset();
+
+    try {
+      waitPoint.await(interval, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      log.error("Interrupted", e);
+    } finally {
+      hasNotified.set(false);
+    }
+  }
+  public void wakeup() {
+    if (hasNotified.compareAndSet(false, true)) {
+      waitPoint.countDown(); // notify
+    }
+  }
   public void putMessagePositionWrapper(
           long offset, //消息在commitLog的物理偏移量
           int size,  //消息大小
@@ -97,6 +123,9 @@ public class ConsumeQueue {
     //需要比较下当前文件的最新物理位置 =？ cqOffset
 
     boolean result = mappedFile.appendMessage(this.byteBufferIndex.array());
+    this.maxCqOffset ++;
+    //释放
+    wakeup();
   }
 
   public void recover() {
@@ -133,20 +162,17 @@ public class ConsumeQueue {
       this.maxConsumedCqOffset = 0;
     }
     mappedFile.setWrotePosition(Math.toIntExact(maxPhysicOffset));
+    log.info("消息总数： {} ，等待消费偏移量位置 ：{}" ,maxCqOffset ,maxConsumedCqOffset);
   }
 
 
-  public long getEnableConsumedOffset(){
+  public Map getEnableConsumedOffset(){
     try{
       if (lock.tryLock(10, TimeUnit.SECONDS)){
         if (maxCqOffset > maxConsumedCqOffset){
-          long res = maxConsumedCqOffset;
-          if ( maxCqOffset - maxConsumedCqOffset > 32){
-            maxConsumedCqOffset = maxCqOffset + 32;
-          }else {
-            maxConsumedCqOffset = maxCqOffset;
-          }
-          return res;
+          return quickReturn();
+        }else {
+          return requestHold();
         }
       }
     } catch (InterruptedException e) {
@@ -154,6 +180,29 @@ public class ConsumeQueue {
     } finally {
       lock.unlock();
     }
-    return -1;
+    return null;
+  }
+
+  private Map<String, Long> requestHold() {
+    log.info("开始等啊等啊等");
+    waitForRunning(15_000);
+    log.info("终于释放了");
+    if (maxCqOffset > maxConsumedCqOffset) {
+      return quickReturn();
+    }
+    return null;
+  }
+
+  private Map<String, Long> quickReturn() {
+    long res = maxConsumedCqOffset;
+    if ( maxCqOffset - maxConsumedCqOffset > 32){
+      maxConsumedCqOffset += 32;
+    }else {
+      maxConsumedCqOffset = maxCqOffset;
+    }
+    HashMap<String, Long> map = new HashMap<>();
+    map.put("startOffset",res);
+    map.put("endOffset",maxConsumedCqOffset - 1);
+    return map;
   }
 }

@@ -3,6 +3,8 @@ package com.quick.mq.store;
 import com.quick.mq.common.exchange.Message;
 import com.quick.mq.common.exchange.PullMessageRequest;
 
+import java.util.Map;
+
 public interface MessageStore {
 
   /**
@@ -19,5 +21,5 @@ public interface MessageStore {
 
   void acceptMessage(Message message);
 
-  long queryEnableMessage(PullMessageRequest request);
+  Map<String, Long> queryEnableMessage(PullMessageRequest request);
 }
