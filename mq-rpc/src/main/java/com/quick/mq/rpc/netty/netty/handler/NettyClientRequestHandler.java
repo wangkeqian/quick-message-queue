@@ -15,11 +15,11 @@ public class NettyClientRequestHandler extends SimpleChannelInboundHandler<Objec
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object message) throws Exception {
         try{
-            log.info("client receive msg {}" ,message);
+//            log.info("client receive msg {}" ,message);
             if (message instanceof Message){
                 Message msg = (Message) message;
                 if (msg.getMessageType() == MessageType.HEARTBEAT.getB()){
-                    log.info("this is heartbeat {}" ,msg.getData());
+//                    log.info("this is heartbeat {}" ,msg.getData());
                     return;
                 }
                 if (msg.getMessageType() == MessageType.RESPONSE.getB()){

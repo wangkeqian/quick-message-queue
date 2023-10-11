@@ -29,12 +29,11 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object message) throws Exception {
-        log.info("来了老弟");
         channels.add(ctx.channel());
-        log.info("channelid = {} ，channels size = {}",ctx.channel().id(), channels.size());
+//        log.info("channelid = {} ，channels size = {}",ctx.channel().id(), channels.size());
         try {
             if (message instanceof Message){
-                log.info("Server received producer message: {}", message);
+//                log.info("Server received producer message: {}", message);
                 // 处理Client Request
                 Response responseMsg = this.handleRequestMsg((Message) message);
                 // 响应请求
@@ -56,7 +55,7 @@ public class NettyMessageHandler extends ChannelInboundHandlerAdapter {
      * @return
      */
     private Response handleRequestMsg(Message message) {
-        log.info("消息 {}" ,message.toString());
+//        log.info("消息 {}" ,message.toString());
         Response response = new Response();
         switch (message.getMessageType()){
             case 0x00: //客户端请求

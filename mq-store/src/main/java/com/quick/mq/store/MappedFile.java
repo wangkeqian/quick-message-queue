@@ -140,8 +140,10 @@ public class MappedFile {
     int currentPos = this.wrotePosition.get();
 
     if (currentPos + data.length <= mappedFileSize){
-      this.mappedByteBuffer.position(currentPos);
-      this.mappedByteBuffer.put(data);
+      ByteBuffer buffer = this.getSliceByteBuffer();
+      log.info("这次存储的位置={}",currentPos);
+      buffer.position(currentPos);
+      buffer.put(data);
       this.mappedByteBuffer.force();
 
       this.wrotePosition.addAndGet(data.length);

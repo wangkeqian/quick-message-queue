@@ -78,7 +78,7 @@ public class DefaultConsumer implements Consumer{
     }
 
     private List<CommitLogMessage> pullMessage(PullRequest take) {
-        log.info("终于拉到了 起始偏移量 ：{}，结束偏移量 ：{}" ,take.getCqStartOffset() ,take.getCqEndOffset());
+//        log.info("终于拉到了 起始偏移量 ：{}，结束偏移量 ：{}" ,take.getCqStartOffset() ,take.getCqEndOffset());
         NettyClient client = new NettyClient();
         Message message = new Message(null , JSONObject.toJSONString(take), MessageType.CONSUMER_PUll_REQUEST);
         List<CommitLogMessage> data = new ArrayList<>();

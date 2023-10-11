@@ -170,10 +170,10 @@ public class ConsumeQueue {
     if (mappedFile == null){
       return null;
     }
-    cqStartOffset = 0;
-    cqEndOffset = 7;
     ByteBuffer buffer = mappedFile.getSliceByteBuffer();
     buffer.position(cqStartOffset * BYTE_BUFFER_INDEX_MAX_SIZE);
+    log.info("小伙子这次想拉 {} ~ {}" ,cqStartOffset, cqEndOffset);
+    int newOffset = 0;
     List<ConsumerQueueMessage> messages = new ArrayList<>();
     for (int i = cqStartOffset; i <= cqEndOffset; i++){
       //消息在commitLog的物理偏移量
@@ -185,7 +185,9 @@ public class ConsumeQueue {
       long def = buffer.getInt();
       ConsumerQueueMessage message = new ConsumerQueueMessage(offset, size, hasConsumed, def);
       messages.add(message);
+      newOffset += BYTE_BUFFER_INDEX_MAX_SIZE;
     }
+    log.info("这次拉取的起始位置={} 结束位置={}",cqStartOffset * BYTE_BUFFER_INDEX_MAX_SIZE ,cqStartOffset * BYTE_BUFFER_INDEX_MAX_SIZE + newOffset);
     return messages;
   }
 
@@ -207,9 +209,9 @@ public class ConsumeQueue {
   }
 
   private Map<String, Long> requestHold() {
-    log.info("开始等啊等啊等");
+//    log.info("开始等啊等啊等");
     waitForRunning(15_000);
-    log.info("终于释放了");
+//    log.info("终于释放了");
     if (maxCqOffset > maxConsumedCqOffset) {
       return quickReturn();
     }

@@ -77,7 +77,7 @@ public class CommitLog {
                 buffer.get(bytesBody, 0 , dataLength);
                 mappedFileOffset += dataLength + 4 + 8 + 4;
 
-                log.info("加载CommitLog 消息体 【{}】消息尾巴物理位置 {}" ,new String(bytesBody),mappedFileOffset);
+//                log.info("加载CommitLog 消息体 【{}】消息尾巴物理位置 {}" ,new String(bytesBody),mappedFileOffset);
             }
             mappedFile.setWrotePosition(mappedFileOffset);
 

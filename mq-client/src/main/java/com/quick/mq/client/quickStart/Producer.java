@@ -11,23 +11,26 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Producer {
-    public static void main( String[] args ) throws ExecutionException, InterruptedException, TimeoutException {
+    public static void main( String[] args ) {
 
-        /**
-         * wangkeqian
-         * wangxixi
-         * kongjie
-         * wuzhen
-         * china
-         * usa
-         */
-        for (int i = 0; i < 1; i++) {
+
+//        for (int i = 1001; i <= 2000; i++) {
+//            NettyClient client = new NettyClient();
+//            JSONObject data = new JSONObject();
+//            data.put("name", "消息_" + i);
+//            String topic = "test_v2";
+//            Message message = new Message(topic ,data);
+//            Response send = client.send(message);
+//            log.info("响应为 {}", send);
+//        }
+        for (int i = 3001; i <= 10000; i++) {
+            final int t = i;
             new Thread(new Runnable() {
                 @SneakyThrows
                 public void run() {
                     NettyClient client = new NettyClient();
                     JSONObject data = new JSONObject();
-                    data.put("name", "昆明");
+                    data.put("name", "消息_" + t);
                     String topic = "test_v2";
                     Message message = new Message(topic ,data);
                     Response send = client.send(message);
